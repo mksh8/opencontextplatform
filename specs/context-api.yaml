@@ -1,0 +1,81 @@
+openapi: 3.0.3
+info:
+  title: OpenContextPlatform Context API
+  description: The REST API for the OpenContextPlatform Context Engine, enabling memory, retrieval, ranking, and graph interactions.
+  version: 0.1.0-alpha
+servers:
+  - url: http://localhost:8080/api/v1
+    description: Local development server
+paths:
+  /context:
+    post:
+      summary: Ingest new context
+      operationId: ingestContext
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ContextObject'
+      responses:
+        '201':
+          description: Context created successfully
+  /search:
+    post:
+      summary: Hybrid Retrieval (Vector + Graph)
+      operationId: searchContext
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SearchRequest'
+      responses:
+        '200':
+          description: Ranked search results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchResponse'
+
+components:
+  schemas:
+    ContextObject:
+      type: object
+      required:
+        - id
+        - tenant_id
+        - type
+      properties:
+        id:
+          type: string
+        tenant_id:
+          type: string
+        type:
+          type: string
+        content:
+          type: string
+        metadata:
+          type: object
+          additionalProperties: true
+        embedding:
+          type: array
+          items:
+            type: number
+    SearchRequest:
+      type: object
+      properties:
+        query:
+          type: string
+        tenant_id:
+          type: string
+        hybrid_weight:
+          type: number
+          default: 0.5
+    SearchResponse:
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/ContextObject'

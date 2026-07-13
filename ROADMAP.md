@@ -1,62 +1,524 @@
-# Roadmap
+# OpenContextPlatform
 
-## Purpose
+> **The Open Standard for AI Context**
 
-This roadmap defines the order in which OpenContextPlatform becomes a production-grade open standard for AI context infrastructure.
+[![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](#license)
+[![Status](https://img.shields.io/badge/status-Architecture%20Phase-orange.svg)](#roadmap)
+[![Version](https://img.shields.io/badge/version-v0.1.0--alpha-green.svg)](#roadmap)
 
-## Goals
+OpenContextPlatform (OCP) is an open-source, provider-agnostic **Context Runtime** that enables AI agents, coding assistants, and enterprise AI applications to retrieve, enrich, manage, rank, and reason over contextual knowledge.
 
-- Complete the documentation and specification foundation before implementation.
-- Deliver one milestone at a time with synchronized docs, specs, tests, and reviews.
-- Keep provider, connector, runtime, cloud, and enterprise work independently extensible.
+Unlike traditional memory frameworks, OpenContextPlatform provides a complete context infrastructure that supports:
 
-## Architecture
+* AI Agents
+* Coding Assistants
+* Enterprise AI
+* Multi-Agent Systems
+* RAG Applications
+* AI Copilots
+* Knowledge Platforms
 
-Roadmap milestones follow the project lifecycle: RFC, Architecture, Database Design, API Design, Sequence Diagram, Implementation, Unit Tests, Integration Tests, Documentation, Review, and Release.
+---
 
-The roadmap is executed through controlled documentation loops. Each loop defines the task, context, allowed actions, verification checks, persisted progress, outputs, and stop or escalation rules before work begins.
+# Vision
 
-## Diagrams
+Build the **universal Context Infrastructure** for AI.
 
-```mermaid
-gantt
-  title OpenContextPlatform Roadmap
-  dateFormat  YYYY-MM-DD
-  section Foundation
-  Documentation foundation :done, 2026-07-12, 2d
-  Sprint 001 foundation specs :active, 2026-07-13, 14d
-  Specifications v0       :2026-07-27, 21d
-  section Runtime
-  Runtime RFCs            :2026-08-17, 21d
-  Runtime alpha           :2026-09-07, 45d
-  section Ecosystem
-  Provider SDKs           :2026-10-01, 45d
-  Connector SDKs          :2026-10-15, 45d
-  section Operations
-  Cloud native deploy     :2026-11-15, 45d
-  Enterprise controls     :2026-12-01, 60d
+Just as:
+
+* Kubernetes standardized container orchestration
+* Terraform standardized infrastructure provisioning
+* OpenTelemetry standardized observability
+* Supabase simplified backend development
+
+**OpenContextPlatform aims to standardize contextual intelligence.**
+
+---
+
+# Mission
+
+Enable every AI application to use the same context infrastructure regardless of:
+
+* LLM
+* Embedding Model
+* Vector Database
+* Graph Database
+* Storage
+* Deployment Platform
+
+Developers should be able to bring their own providers or use managed services.
+
+---
+
+# Core Principles
+
+* API First
+* Specification First
+* Documentation First
+* Plugin First
+* Provider Agnostic
+* Cloud Native
+* Enterprise Ready
+* Open Standards
+* Developer Experience First
+
+---
+
+# Architecture
+
+```text
+                 AI Applications
+
+ Claude Code
+ Cursor
+ OpenAI Agents SDK
+ LangGraph
+ CrewAI
+ VS Code
+ Custom Agents
+
+                SDK / MCP / REST / gRPC
+
+                       │
+
+              OpenContext Runtime
+
+                       │
+
+ ┌────────────────────────────────────┐
+ │ Context API                        │
+ │ Memory Engine                      │
+ │ Retrieval Engine                   │
+ │ Ranking Engine                     │
+ │ Prompt Builder                     │
+ │ Knowledge Graph                    │
+ │ Context Compression                │
+ └────────────────────────────────────┘
+
+                       │
+
+          Provider Abstraction Layer
+
+                       │
+
+ LLM • Embeddings • Graph DB • Vector DB • Storage • Connectors
 ```
 
-## Examples
+---
 
-Milestone 0 creates the monorepo, docs, book, RFCs, ADRs, and specifications. Sprint 001 turns that foundation into reviewable specification work using the agentic loop artifacts under `.ai/loops/sprint-001-foundation-specs/`. Milestone 1 validates runtime architecture. Milestone 2 introduces provider and connector SDKs.
+# Key Features
 
-### Sprint 001: Foundation Specifications
+## Context Runtime
 
-Sprint 001 runs from 2026-07-13 to 2026-07-26. Its objective is to harden the documentation foundation into a specification-ready baseline without implementing business logic.
+* Context Management
+* Memory Management
+* Context Retrieval
+* Hybrid Search
+* Prompt Assembly
+* Context Ranking
+* Context Compression
 
-Sprint 001 deliverables:
+## Memory
 
-- Specification maturity matrix for context, memory, providers, connectors, plugins, retrieval, ranking, and prompt builder.
-- RFC backlog for runtime architecture, plugin lifecycle, provider SDK, connector SDK, API versioning, and conformance.
-- ADR backlog for monorepo governance, specification stability, plugin model, and API-first contracts.
-- Documentation quality checks for required sections, diagrams, and lifecycle alignment.
-- Review package in `.ai/loops/sprint-001-foundation-specs/outputs/`.
+* Session Memory
+* User Memory
+* Project Memory
+* Organization Memory
+* Episodic Memory
+* Semantic Memory
+* Procedural Memory
 
-## Tradeoffs
+## Retrieval
 
-The roadmap intentionally delays business logic. This slows early demos but prevents unstable APIs and undocumented architecture from becoming accidental standards.
+* Vector Search
+* Graph Search
+* Hybrid Retrieval
+* Metadata Search
+* Keyword Search
+* Temporal Search
 
-## Future Work
+## Knowledge Graph
 
-Future releases will add conformance suites, compatibility matrices, performance benchmarks, and long-term support policy.
+* Entity Extraction
+* Relationship Mapping
+* Context Timeline
+* Semantic Graph
+* Repository Graph
+
+---
+
+# Primary Database
+
+OpenContextPlatform uses **ArcadeDB** as the default unified database engine for the core runtime, natively handling:
+
+* **Relational Data**
+* **Vector Embeddings**
+* **NoSQL Documents**
+* **Graph Relationships**
+
+---
+
+# Bring Your Own Providers
+
+## LLM
+
+* OpenAI
+* Anthropic
+* Google Gemini
+* Ollama
+* Azure OpenAI
+* Custom Providers
+
+## Embedding Models
+
+* OpenAI
+* VoyageAI
+* BGE
+* Nomic
+* Ollama
+* Custom Models
+
+## Vector Databases
+
+* LanceDB
+* Qdrant
+* Pinecone
+* Milvus
+* Weaviate
+* Chroma
+
+## Graph Databases
+
+* Neo4j
+* ArcadeDB
+* Kùzu
+* Amazon Neptune
+* JanusGraph
+
+## Storage
+
+* PostgreSQL
+* MySQL
+* MongoDB
+* Amazon S3
+* MinIO
+* Azure Blob
+* Google Cloud Storage
+
+---
+
+# Connectors
+
+* GitHub
+* GitLab
+* Bitbucket
+* Jira
+* Slack
+* Notion
+* Confluence
+* Google Drive
+* SharePoint
+* Filesystem
+* SQL Databases
+* REST APIs
+* MCP Connectors
+
+---
+
+# SDKs
+
+* Python
+* TypeScript
+* Go
+
+**Planned**
+
+* Java
+* .NET
+* Rust
+
+---
+
+# Deployment
+
+* Local Development
+* Docker
+* Docker Compose
+* Kubernetes
+* Helm
+* Terraform
+* AWS
+* Azure
+* Google Cloud
+
+---
+
+# Repository Structure
+
+```text
+OpenContextPlatform/
+
+book/
+docs/
+specs/
+rfcs/
+adr/
+
+apps/
+runtime/
+packages/
+providers/
+connectors/
+sdks/
+deployments/
+examples/
+tests/
+scripts/
+
+.github/
+.ai/
+
+README.md
+ROADMAP.md
+AGENTS.md
+CODEX.md
+CLAUDE.md
+```
+
+---
+
+# Roadmap
+
+## Phase 1 — Foundation
+
+**Status:** 🚧 In Progress
+
+### Goals
+
+* Repository bootstrap
+* Architecture Book
+* Product Requirements Document
+* RFC process
+* ADR templates
+* CI/CD
+* Development standards
+* Monorepo structure
+
+---
+
+## Phase 2 — Context Runtime
+
+### Deliverables
+
+* Context Runtime
+* Context API
+* Memory Engine
+* Retrieval Engine
+* Ranking Engine
+* Prompt Builder
+* Context Timeline
+* Search API
+
+---
+
+## Phase 3 — Provider SDK
+
+### Deliverables
+
+* Provider SDK
+* LLM Provider
+* Embedding Provider
+* Graph Provider
+* Vector Provider
+* Storage Provider
+* Cache Provider
+
+---
+
+## Phase 4 — Connector SDK
+
+### Deliverables
+
+* GitHub
+* GitLab
+* Jira
+* Slack
+* Notion
+* Confluence
+* SQL
+* Filesystem
+* REST API
+* MCP Connectors
+
+---
+
+## Phase 5 — Coding Context
+
+### Deliverables
+
+* Repository Indexer
+* AST Parser
+* Dependency Graph
+* Symbol Graph
+* Call Graph
+* Pull Request Graph
+* Issue Graph
+* Documentation Graph
+* Code Search
+* Architecture Graph
+
+---
+
+## Phase 6 — Dashboard
+
+### Deliverables
+
+* UI/UX Design System
+* Admin Dashboard
+* Organizations
+* Workspaces
+* Provider Configuration
+* Connector Management
+* Monitoring
+* Usage Analytics
+
+---
+
+## Phase 7 — Cloud Platform
+
+### Deliverables
+
+* Managed Runtime
+* Billing
+* Usage Metering
+* API Keys
+* Hosted Providers
+* Hosted Connectors
+
+---
+
+## Phase 8 — Enterprise
+
+### Deliverables
+
+* RBAC
+* SSO
+* SCIM
+* Audit Logs
+* Policy Engine
+* Encryption
+* Secret Management
+* Compliance
+
+---
+
+## Phase 9 — Marketplace
+
+### Deliverables
+
+* Provider Marketplace
+* Connector Marketplace
+* Plugin Marketplace
+* Templates
+* Community Extensions
+
+---
+
+# Development Workflow
+
+Every feature follows the same lifecycle:
+
+```text
+RFC
+ ↓
+Architecture
+ ↓
+UI/UX Design
+ ↓
+API Design
+ ↓
+Database Design
+ ↓
+Implementation
+ ↓
+Testing
+ ↓
+Documentation
+ ↓
+Review
+ ↓
+Release
+```
+
+---
+
+# Definition of Done
+
+A feature is considered complete only when:
+
+* Architecture approved
+* Code implemented
+* Unit tests added
+* Integration tests passing
+* Documentation updated
+* Examples included
+* Benchmarks completed (where applicable)
+* Code reviewed
+* CI passing
+
+---
+
+# Documentation
+
+The project documentation is organized into:
+
+* **book/** — Architecture Book
+* **docs/** — Developer Documentation
+* **specs/** — Technical Specifications
+* **rfcs/** — Request for Comments
+* **adr/** — Architecture Decision Records
+
+---
+
+# Contributing
+
+We welcome contributions from the community.
+
+Please read:
+
+* `CONTRIBUTING.md`
+* `CODE_OF_CONDUCT.md`
+* `AGENTS.md`
+* `CODEX.md`
+* `CLAUDE.md`
+
+before opening a pull request.
+
+---
+
+# License
+
+Apache License 2.0
+
+---
+
+# Project Status
+
+| Component      | Status         |
+| -------------- | -------------- |
+| Vision         | ✅ Complete     |
+| Roadmap        | 🚧 In Progress |
+| Architecture   | 🚧 In Progress |
+| Specifications | 🚧 In Progress |
+| Runtime        | ⏳ Planned      |
+| SDK            | ⏳ Planned      |
+| Connectors     | ⏳ Planned      |
+| Dashboard      | ⏳ Planned      |
+| Cloud          | ⏳ Planned      |
+| Enterprise     | ⏳ Planned      |
+
+---
+
+# Long-Term Goal
+
+OpenContextPlatform aims to become the **standard context infrastructure for AI**, enabling any agent, framework, or enterprise application to share a common, open, extensible approach to contextual intelligence.
