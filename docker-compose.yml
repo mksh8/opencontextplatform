@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  # 1. FastAPI Backend
+  api-service:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - ARCADEDB_URL=http://db-service:2480
+      - REDIS_URL=redis://cache-service:6379
+      - ENVIRONMENT=production
+    depends_on:
+      - db-service
+      - cache-service
+    networks:
+      - context-net
+
+  # 2. React Dashboard Frontend
+  dashboard-service:
+    build:
+      context: ./apps/dashboard
+      dockerfile: Dockerfile
+    ports:
+      - "8080:80"
+    depends_on:
+      - api-service
+    networks:
+      - context-net
+
+  # 3. ArcadeDB Context Engine (Unified Graph/Vector/Relational DB)
+  db-service:
+    image: arcadedata/arcadedb:latest
+    ports:
+      - "2480:2480" # HTTP API
+      - "2424:2424" # Binary API
+      - "8182:8182" # Gremlin API
+    environment:
+      - JAVA_OPTS=-Darcadedb.server.rootPassword=opencontext
+    networks:
+      - context-net
+
+  # 4. Redis Cache (for Rate Limiting / Billing Metering)
+  cache-service:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    networks:
+      - context-net
+
+networks:
+  context-net:
+    driver: bridge

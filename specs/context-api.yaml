@@ -79,3 +79,25 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/ContextObject'
+
+  /webhooks/{provider}:
+    post:
+      summary: Real-time event ingestion webhook
+      operationId: handleWebhook
+      parameters:
+        - name: provider
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The connector provider (e.g., github, slack)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: The raw payload from the external provider
+      responses:
+        '202':
+          description: Webhook accepted for asynchronous processing

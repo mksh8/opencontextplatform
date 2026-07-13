@@ -1,0 +1,7 @@
+{
+    "name": "dummy_connector",
+    "type": "connector",
+    "version": "1.0.0",
+    "entrypoint_module": "main",
+    "entrypoint_class": "DummyConnector"
+}
