@@ -25,6 +25,10 @@ export default function Members() {
       .catch(error => console.error("Error fetching members:", error))
       .finally(() => setLoading(false));
   }, []);
+
+  return (
+    <>
+      <div className="page-header">
         <div className="page-title">
           <h1>Members</h1>
           <p>Manage members in your organization.</p>

@@ -6,7 +6,7 @@ from .implementations import (
     MCPConnector,
     RESTAPIConnector,
 )
-
+from .filesystem import FilesystemConnector
 
 class ConnectorFactory:
     """
@@ -21,6 +21,7 @@ class ConnectorFactory:
             "notion": NotionConnector,
             "mcp": MCPConnector,
             "rest_api": RESTAPIConnector,
+            "filesystem": FilesystemConnector,
         }
 
         if name not in connectors:
