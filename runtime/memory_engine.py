@@ -21,3 +21,34 @@ class MemoryEngine:
             
         record_id = self.db.insert_context_node(context_obj)
         return record_id
+
+    def get_all_contexts(self) -> dict:
+        """
+        Retrieves all context objects from ArcadeDB.
+        Stubbed to return sample data representing the DB response.
+        """
+        # In reality, this calls self.db.execute("SELECT FROM ContextNode")
+        return {
+            "data": [
+                {
+                    "id": "ctx_1_from_arcadedb",
+                    "title": "[ArcadeDB] Fix authentication bug",
+                    "type": "Code",
+                    "source": "GitHub",
+                    "workspace": "Engineering",
+                    "tokens": "4.5K",
+                    "updated": "2m ago"
+                },
+                {
+                    "id": "ctx_2_from_arcadedb",
+                    "title": "[ArcadeDB] User profile details",
+                    "type": "Documentation",
+                    "source": "Confluence",
+                    "workspace": "Engineering",
+                    "tokens": "2.1K",
+                    "updated": "5m ago"
+                }
+            ],
+            "total": 2,
+            "page": 1
+        }
