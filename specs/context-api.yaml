@@ -10,6 +10,7 @@ paths:
   /context:
     post:
       summary: Ingest new context
+      description: Ingests new semantic or episodic memory into the knowledge graph and vector index.
       operationId: ingestContext
       requestBody:
         required: true
@@ -20,9 +21,14 @@ paths:
       responses:
         '201':
           description: Context created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContextObject'
   /search:
     post:
       summary: Hybrid Retrieval (Vector + Graph)
+      description: Retrieve context using a mix of semantic vector similarity and graph structural traversal.
       operationId: searchContext
       requestBody:
         required: true
@@ -37,52 +43,30 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SearchResponse'
-
-components:
-  schemas:
-    ContextObject:
-      type: object
-      required:
-        - id
-        - tenant_id
-        - type
-      properties:
-        id:
-          type: string
-        tenant_id:
-          type: string
-        type:
-          type: string
-        content:
-          type: string
-        metadata:
-          type: object
-          additionalProperties: true
-        embedding:
-          type: array
-          items:
-            type: number
-    SearchRequest:
-      type: object
-      properties:
-        query:
-          type: string
-        tenant_id:
-          type: string
-        hybrid_weight:
-          type: number
-          default: 0.5
-    SearchResponse:
-      type: object
-      properties:
-        results:
-          type: array
-          items:
-            $ref: '#/components/schemas/ContextObject'
-
+  /memories/{tenant_id}:
+    get:
+      summary: Get Memory Collections
+      description: Retrieve episodic and semantic memories for a given tenant.
+      operationId: getMemories
+      parameters:
+        - name: tenant_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: A list of memories
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ContextObject'
   /webhooks/{provider}:
     post:
       summary: Real-time event ingestion webhook
+      description: Webhook endpoint for connectors to push streaming context events.
       operationId: handleWebhook
       parameters:
         - name: provider
@@ -96,8 +80,81 @@ components:
         content:
           application/json:
             schema:
-              type: object
-              description: The raw payload from the external provider
+              $ref: '#/components/schemas/WebhookPayload'
       responses:
         '202':
           description: Webhook accepted for asynchronous processing
+
+components:
+  schemas:
+    ContextObject:
+      type: object
+      required:
+        - id
+        - tenant_id
+        - type
+      properties:
+        id:
+          type: string
+          description: Unique identifier (UUIDv4)
+        tenant_id:
+          type: string
+          description: Organization or user tenant boundary
+        type:
+          type: string
+          enum: [semantic, episodic, procedural, generic]
+        content:
+          type: string
+          description: The raw text or payload of the context node
+        metadata:
+          type: object
+          additionalProperties: true
+          description: Key-value metadata for filtering and graph attributes
+        embedding:
+          type: array
+          items:
+            type: number
+          description: The dense vector representation of the content
+    SearchRequest:
+      type: object
+      required:
+        - query
+        - tenant_id
+      properties:
+        query:
+          type: string
+          description: The natural language search query
+        tenant_id:
+          type: string
+          description: Tenant boundary for the search
+        hybrid_weight:
+          type: number
+          default: 0.5
+          description: Weight between 0 (Graph only) and 1 (Vector only)
+        top_k:
+          type: integer
+          default: 10
+          description: Max number of results to return
+    SearchResponse:
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/ContextObject'
+        ranked_scores:
+          type: object
+          additionalProperties:
+            type: number
+          description: Map of Context IDs to their final reranked score
+    WebhookPayload:
+      type: object
+      properties:
+        event_type:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        payload:
+          type: object
+          additionalProperties: true

@@ -1,6 +1,28 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import apiClient from '../api/client';
+
+interface Provider {
+  id: string;
+  name: string;
+  url: string;
+  model: string;
+  status: string;
+  usage: string;
+}
 
 export default function Providers() {
+  const [providers, setProviders] = useState<Provider[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const orgId = "org_alpha_123";
+    apiClient.get(`/providers/${orgId}`)
+      .then(response => {
+        setProviders(response.data);
+      })
+      .catch(error => console.error("Error fetching providers:", error))
+      .finally(() => setLoading(false));
+  }, []);
   return (
     <>
       <div className="page-header">
@@ -31,46 +53,37 @@ export default function Providers() {
             </tr>
           </thead>
           <tbody>
-            <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
-              <td style={{ padding: '16px 24px' }}>
-                <div style={{ fontWeight: 500, color: '#fff' }}>OpenAI</div>
-                <div style={{ fontSize: 11, color: 'var(--text-secondary)' }}>api.openai.com</div>
-              </td>
-              <td style={{ padding: '16px 24px' }}><span className="tag" style={{ border: '1px solid var(--border-color)' }}>gpt-4-turbo</span></td>
-              <td style={{ padding: '16px 24px' }}><div className="status-indicator"><div className="dot"></div> Active</div></td>
-              <td style={{ padding: '16px 24px', color: 'var(--text-secondary)' }}>2.4M tokens</td>
-              <td style={{ padding: '16px 24px' }}>⋮</td>
-            </tr>
-            <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
-              <td style={{ padding: '16px 24px' }}>
-                <div style={{ fontWeight: 500, color: '#fff' }}>Anthropic</div>
-                <div style={{ fontSize: 11, color: 'var(--text-secondary)' }}>api.anthropic.com</div>
-              </td>
-              <td style={{ padding: '16px 24px' }}><span className="tag" style={{ border: '1px solid var(--border-color)' }}>claude-3-opus</span></td>
-              <td style={{ padding: '16px 24px' }}><div className="status-indicator"><div className="dot"></div> Active</div></td>
-              <td style={{ padding: '16px 24px', color: 'var(--text-secondary)' }}>1.8M tokens</td>
-              <td style={{ padding: '16px 24px' }}>⋮</td>
-            </tr>
-            <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
-              <td style={{ padding: '16px 24px' }}>
-                <div style={{ fontWeight: 500, color: '#fff' }}>Google</div>
-                <div style={{ fontSize: 11, color: 'var(--text-secondary)' }}>generativelanguage.googleapis.com</div>
-              </td>
-              <td style={{ padding: '16px 24px' }}><span className="tag" style={{ border: '1px solid var(--border-color)' }}>gemini-1.5-pro</span></td>
-              <td style={{ padding: '16px 24px' }}><div className="status-indicator"><div className="dot"></div> Active</div></td>
-              <td style={{ padding: '16px 24px', color: 'var(--text-secondary)' }}>800K tokens</td>
-              <td style={{ padding: '16px 24px' }}>⋮</td>
-            </tr>
-            <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
-              <td style={{ padding: '16px 24px' }}>
-                <div style={{ fontWeight: 500, color: '#fff' }}>Local (Ollama)</div>
-                <div style={{ fontSize: 11, color: 'var(--text-secondary)' }}>localhost:11434</div>
-              </td>
-              <td style={{ padding: '16px 24px' }}><span className="tag" style={{ border: '1px solid var(--border-color)' }}>llama-3-70b</span></td>
-              <td style={{ padding: '16px 24px' }}><div className="status-indicator" style={{ color: 'var(--text-secondary)' }}><div className="dot" style={{ background: 'var(--text-secondary)' }}></div> Offline</div></td>
-              <td style={{ padding: '16px 24px', color: 'var(--text-secondary)' }}>0 tokens</td>
-              <td style={{ padding: '16px 24px' }}>⋮</td>
-            </tr>
+            {loading ? (
+              <tr>
+                <td colSpan={5} style={{ padding: '24px', textAlign: 'center', color: 'var(--text-secondary)' }}>
+                  Loading providers...
+                </td>
+              </tr>
+            ) : providers.length === 0 ? (
+              <tr>
+                <td colSpan={5} style={{ padding: '24px', textAlign: 'center', color: 'var(--text-secondary)' }}>
+                  No providers found.
+                </td>
+              </tr>
+            ) : (
+              providers.map(provider => (
+                <tr key={provider.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
+                  <td style={{ padding: '16px 24px' }}>
+                    <div style={{ fontWeight: 500, color: '#fff' }}>{provider.name}</div>
+                    <div style={{ fontSize: 11, color: 'var(--text-secondary)' }}>{provider.url}</div>
+                  </td>
+                  <td style={{ padding: '16px 24px' }}><span className="tag" style={{ border: '1px solid var(--border-color)' }}>{provider.model}</span></td>
+                  <td style={{ padding: '16px 24px' }}>
+                    <div className="status-indicator" style={{ color: provider.status === 'Active' ? '#10b981' : 'var(--text-secondary)' }}>
+                      <div className="dot" style={{ background: provider.status === 'Active' ? '#10b981' : 'var(--text-secondary)' }}></div> 
+                      {provider.status}
+                    </div>
+                  </td>
+                  <td style={{ padding: '16px 24px', color: 'var(--text-secondary)' }}>{provider.usage}</td>
+                  <td style={{ padding: '16px 24px', cursor: 'pointer' }}>⋮</td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>
