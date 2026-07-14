@@ -27,6 +27,40 @@ class OpenAIProvider(ILLMProvider, IEmbeddingProvider):
         return [[0.1, 0.2, 0.3] for _ in texts]
 
 
+class AnthropicProvider(ILLMProvider):
+    def generate_text(self, prompt: str, config: Dict[str, Any]) -> str:
+        return f"Anthropic mock response for: {prompt}"
+
+    def stream_text(self, prompt: str, config: Dict[str, Any]) -> Iterator[str]:
+        yield "Anthropic"
+        yield " stream"
+
+
+class OllamaProvider(ILLMProvider, IEmbeddingProvider):
+    def generate_text(self, prompt: str, config: Dict[str, Any]) -> str:
+        return f"Ollama mock response for: {prompt}"
+
+    def stream_text(self, prompt: str, config: Dict[str, Any]) -> Iterator[str]:
+        yield "Ollama"
+        yield " stream"
+
+    def get_embeddings(
+        self,
+        texts: List[str],
+        dimensions: Optional[int] = None,
+    ) -> List[List[float]]:
+        return [[0.5, 0.5, 0.5] for _ in texts]
+
+
+class BGEEmbeddingProvider(IEmbeddingProvider):
+    def get_embeddings(
+        self,
+        texts: List[str],
+        dimensions: Optional[int] = None,
+    ) -> List[List[float]]:
+        return [[0.8, 0.9, 1.0] for _ in texts]
+
+
 class PineconeProvider(IVectorDBProvider):
     def upsert_vectors(self, vectors: List[Dict[str, Any]]) -> bool:
         return True

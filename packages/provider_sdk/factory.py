@@ -10,9 +10,13 @@ from .interfaces import (
 )
 from .implementations import (
     OpenAIProvider,
+    AnthropicProvider,
+    OllamaProvider,
+    BGEEmbeddingProvider,
     PineconeProvider,
     Neo4jProvider,
     PostgresProvider,
+    ArcadeDBProvider,
     S3StorageProvider,
     RedisCacheProvider,
     CohereRerankerProvider,
@@ -28,12 +32,20 @@ class ProviderFactory:
     def get_llm_provider(name: str) -> ILLMProvider:
         if name == "openai":
             return OpenAIProvider()
+        elif name == "anthropic":
+            return AnthropicProvider()
+        elif name == "ollama":
+            return OllamaProvider()
         raise ValueError(f"Unknown LLM provider: {name}")
 
     @staticmethod
     def get_embedding_provider(name: str) -> IEmbeddingProvider:
         if name == "openai":
             return OpenAIProvider()
+        elif name == "ollama":
+            return OllamaProvider()
+        elif name == "bge":
+            return BGEEmbeddingProvider()
         raise ValueError(f"Unknown Embedding provider: {name}")
 
     @staticmethod
@@ -46,18 +58,24 @@ class ProviderFactory:
     def get_vector_db_provider(name: str) -> IVectorDBProvider:
         if name == "pinecone":
             return PineconeProvider()
+        elif name == "arcadedb":
+            return ArcadeDBProvider()
         raise ValueError(f"Unknown Vector DB provider: {name}")
 
     @staticmethod
     def get_graph_db_provider(name: str) -> IGraphDBProvider:
         if name == "neo4j":
             return Neo4jProvider()
+        elif name == "arcadedb":
+            return ArcadeDBProvider()
         raise ValueError(f"Unknown Graph DB provider: {name}")
 
     @staticmethod
     def get_sql_provider(name: str) -> ISQLMetadataProvider:
         if name == "postgres":
             return PostgresProvider()
+        elif name == "arcadedb":
+            return ArcadeDBProvider()
         raise ValueError(f"Unknown SQL provider: {name}")
 
     @staticmethod
