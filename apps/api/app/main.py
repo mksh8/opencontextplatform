@@ -6,7 +6,7 @@ from apps.api.app.api.v1.router import v1_router
 app = FastAPI(
     title=settings.PROJECT_NAME,
     version=settings.VERSION,
-    openapi_url=f"{settings.API_V1_STR}/openapi.json"
+    openapi_url=f"{settings.API_V1_STR}/openapi.json",
 )
 
 # Configure CORS
@@ -18,9 +18,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 @app.get("/")
 def read_root():
-    return {"status": "online", "service": settings.PROJECT_NAME, "version": settings.VERSION}
+    return {
+        "status": "online",
+        "service": settings.PROJECT_NAME,
+        "version": settings.VERSION,
+    }
+
 
 # Include API v1 routers
 app.include_router(v1_router, prefix=settings.API_V1_STR)

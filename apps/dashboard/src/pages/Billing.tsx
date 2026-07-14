@@ -1,6 +1,51 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import apiClient from '../api/client';
+
+interface UsageMetrics {
+  total_tokens: string;
+  tokens_trend: string;
+  total_queries: string;
+  queries_trend: string;
+  storage_used: string;
+  storage_trend: string;
+  estimated_cost: string;
+  cost_trend: string;
+}
+
+interface CostService {
+  name: string;
+  cost: string;
+  percentage: string;
+  color: string;
+}
+
+interface InvoiceSummary {
+  services: CostService[];
+}
 
 export default function Billing() {
+  const [usage, setUsage] = useState<UsageMetrics | null>(null);
+  const [invoices, setInvoices] = useState<InvoiceSummary | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const orgId = "org_alpha_123";
+    
+    Promise.all([
+      apiClient.get(`/billing/${orgId}/usage`),
+      apiClient.get(`/billing/${orgId}/invoices`)
+    ])
+    .then(([usageRes, invoicesRes]) => {
+      setUsage(usageRes.data);
+      setInvoices(invoicesRes.data);
+    })
+    .catch(error => console.error("Error fetching billing data:", error))
+    .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) {
+    return <div style={{ padding: 32, color: 'var(--text-secondary)' }}>Loading billing data...</div>;
+  }
   return (
     <>
       <div className="page-header">
@@ -22,25 +67,25 @@ export default function Billing() {
         <div className="kpi-card" style={{ padding: '16px' }}>
           <div className="kpi-data">
             <h3>Total Tokens</h3>
-            <div className="value" style={{ fontSize: 20 }}>2.45B <span className="trend-up">↑ 18.7%</span></div>
+            <div className="value" style={{ fontSize: 20 }}>{usage?.total_tokens} <span className="trend-up">{usage?.tokens_trend}</span></div>
           </div>
         </div>
         <div className="kpi-card" style={{ padding: '16px' }}>
           <div className="kpi-data">
             <h3>Total Queries</h3>
-            <div className="value" style={{ fontSize: 20 }}>245.6K <span className="trend-up">↑ 15.2%</span></div>
+            <div className="value" style={{ fontSize: 20 }}>{usage?.total_queries} <span className="trend-up">{usage?.queries_trend}</span></div>
           </div>
         </div>
         <div className="kpi-card" style={{ padding: '16px' }}>
           <div className="kpi-data">
             <h3>Storage Used</h3>
-            <div className="value" style={{ fontSize: 20 }}>128.4 GB <span className="trend-up">↑ 5.2%</span></div>
+            <div className="value" style={{ fontSize: 20 }}>{usage?.storage_used} <span className="trend-up">{usage?.storage_trend}</span></div>
           </div>
         </div>
         <div className="kpi-card" style={{ padding: '16px' }}>
           <div className="kpi-data">
             <h3>Estimated Cost</h3>
-            <div className="value" style={{ fontSize: 20 }}>$245.60 <span className="trend-up" style={{ color: '#ff7b72' }}>↑ 1.2%</span></div>
+            <div className="value" style={{ fontSize: 20 }}>{usage?.estimated_cost} <span className="trend-up" style={{ color: '#ff7b72' }}>{usage?.cost_trend}</span></div>
           </div>
         </div>
       </div>
@@ -81,31 +126,13 @@ export default function Billing() {
             <span className="widget-title">Top Services by Cost</span>
           </div>
           
-          <div className="bar-row">
-            <div className="bar-label">LLM Requests</div>
-            <div className="bar-track"><div className="bar-fill" style={{ width: '58%', background: 'var(--accent-purple)' }}></div></div>
-            <div className="bar-value">$142.40 <span style={{ fontSize: 10 }}>58.0%</span></div>
-          </div>
-          <div className="bar-row">
-            <div className="bar-label">Embeddings</div>
-            <div className="bar-track"><div className="bar-fill" style={{ width: '27%', background: 'var(--accent-blue)' }}></div></div>
-            <div className="bar-value">$67.30 <span style={{ fontSize: 10 }}>27.4%</span></div>
-          </div>
-          <div className="bar-row">
-            <div className="bar-label">Vector Search</div>
-            <div className="bar-track"><div className="bar-fill" style={{ width: '10%', background: 'var(--accent-green)' }}></div></div>
-            <div className="bar-value">$24.80 <span style={{ fontSize: 10 }}>10.1%</span></div>
-          </div>
-          <div className="bar-row">
-            <div className="bar-label">Graph DB</div>
-            <div className="bar-track"><div className="bar-fill" style={{ width: '3%', background: 'var(--accent-yellow)' }}></div></div>
-            <div className="bar-value">$8.40 <span style={{ fontSize: 10 }}>3.4%</span></div>
-          </div>
-          <div className="bar-row">
-            <div className="bar-label">Other</div>
-            <div className="bar-track"><div className="bar-fill" style={{ width: '1%', background: 'var(--text-secondary)' }}></div></div>
-            <div className="bar-value">$2.70 <span style={{ fontSize: 10 }}>1.1%</span></div>
-          </div>
+          {invoices?.services.map((service, index) => (
+            <div className="bar-row" key={index}>
+              <div className="bar-label">{service.name}</div>
+              <div className="bar-track"><div className="bar-fill" style={{ width: service.percentage, background: service.color }}></div></div>
+              <div className="bar-value">{service.cost} <span style={{ fontSize: 10 }}>{service.percentage}</span></div>
+            </div>
+          ))}
           
           <div style={{ marginTop: 24, textAlign: 'right' }}>
             <span style={{ fontSize: 12, color: 'var(--accent-blue)', cursor: 'pointer' }}>View Invoices</span>

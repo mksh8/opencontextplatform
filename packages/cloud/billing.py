@@ -1,16 +1,18 @@
 from abc import ABC, abstractmethod
 
+
 class IBillingProvider(ABC):
     @abstractmethod
     def report_usage(self, tenant_id: str, metric: str, quantity: int) -> bool:
         pass
 
+
 class StripeBillingProvider(IBillingProvider):
     """Reference implementation for Stripe Metered Billing."""
-    
+
     def __init__(self, api_key: str):
         self.api_key = api_key
-        
+
     def report_usage(self, tenant_id: str, metric: str, quantity: int) -> bool:
         """
         Pushes a metered event to Stripe (Mocked).
@@ -33,6 +35,6 @@ class StripeBillingProvider(IBillingProvider):
                 "tokens": "+22.4%",
                 "queries": "+11.1%",
                 "storage": "+4.2%",
-                "cost": "+3.1%"
-            }
+                "cost": "+3.1%",
+            },
         }

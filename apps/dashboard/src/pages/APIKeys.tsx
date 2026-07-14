@@ -1,6 +1,28 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import apiClient from '../api/client';
+
+interface APIKey {
+  name: string;
+  key: string;
+  scopes: string;
+  created_at: string;
+  status: string;
+}
 
 export default function APIKeys() {
+  const [keys, setKeys] = useState<APIKey[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const orgId = "org_alpha_123";
+    
+    apiClient.get(`/billing/${orgId}/apikeys`)
+      .then(response => {
+        setKeys(response.data);
+      })
+      .catch(error => console.error("Error fetching API keys:", error))
+      .finally(() => setLoading(false));
+  }, []);
   return (
     <>
       <div className="page-header">
@@ -24,38 +46,35 @@ export default function APIKeys() {
             </tr>
           </thead>
           <tbody>
-            <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
-              <td style={{ padding: '16px 24px', color: '#fff', fontWeight: 500 }}>Production Key</td>
-              <td style={{ padding: '16px 24px', fontFamily: 'monospace', color: 'var(--text-secondary)' }}>ocp_live_••••••••</td>
-              <td style={{ padding: '16px 24px', color: 'var(--text-secondary)' }}>All</td>
-              <td style={{ padding: '16px 24px', color: 'var(--text-secondary)' }}>May 10, 2024</td>
-              <td style={{ padding: '16px 24px' }}><div className="status-indicator"><div className="dot"></div> Active</div></td>
-              <td style={{ padding: '16px 24px' }}>⋮</td>
-            </tr>
-            <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
-              <td style={{ padding: '16px 24px', color: '#fff', fontWeight: 500 }}>Development Key</td>
-              <td style={{ padding: '16px 24px', fontFamily: 'monospace', color: 'var(--text-secondary)' }}>ocp_dev_••••••••</td>
-              <td style={{ padding: '16px 24px', color: 'var(--text-secondary)' }}>Read, Write</td>
-              <td style={{ padding: '16px 24px', color: 'var(--text-secondary)' }}>May 11, 2024</td>
-              <td style={{ padding: '16px 24px' }}><div className="status-indicator"><div className="dot"></div> Active</div></td>
-              <td style={{ padding: '16px 24px' }}>⋮</td>
-            </tr>
-            <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
-              <td style={{ padding: '16px 24px', color: '#fff', fontWeight: 500 }}>Read Only Key</td>
-              <td style={{ padding: '16px 24px', fontFamily: 'monospace', color: 'var(--text-secondary)' }}>ocp_ro_••••••••</td>
-              <td style={{ padding: '16px 24px', color: 'var(--text-secondary)' }}>Read</td>
-              <td style={{ padding: '16px 24px', color: 'var(--text-secondary)' }}>May 12, 2024</td>
-              <td style={{ padding: '16px 24px' }}><div className="status-indicator"><div className="dot"></div> Active</div></td>
-              <td style={{ padding: '16px 24px' }}>⋮</td>
-            </tr>
-            <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
-              <td style={{ padding: '16px 24px', color: '#fff', fontWeight: 500 }}>Service Key</td>
-              <td style={{ padding: '16px 24px', fontFamily: 'monospace', color: 'var(--text-secondary)' }}>ocp_svc_••••••••</td>
-              <td style={{ padding: '16px 24px', color: 'var(--text-secondary)' }}>All</td>
-              <td style={{ padding: '16px 24px', color: 'var(--text-secondary)' }}>May 13, 2024</td>
-              <td style={{ padding: '16px 24px' }}><div className="status-indicator" style={{ color: '#ff7b72' }}><div className="dot" style={{ background: '#ff7b72' }}></div> Revoked</div></td>
-              <td style={{ padding: '16px 24px' }}>⋮</td>
-            </tr>
+            {loading ? (
+              <tr>
+                <td colSpan={6} style={{ padding: '24px', textAlign: 'center', color: 'var(--text-secondary)' }}>
+                  Loading API keys...
+                </td>
+              </tr>
+            ) : keys.length === 0 ? (
+              <tr>
+                <td colSpan={6} style={{ padding: '24px', textAlign: 'center', color: 'var(--text-secondary)' }}>
+                  No API keys found.
+                </td>
+              </tr>
+            ) : (
+              keys.map((apiKey, index) => (
+                <tr key={index} style={{ borderBottom: '1px solid var(--border-color)' }}>
+                  <td style={{ padding: '16px 24px', color: '#fff', fontWeight: 500 }}>{apiKey.name}</td>
+                  <td style={{ padding: '16px 24px', fontFamily: 'monospace', color: 'var(--text-secondary)' }}>{apiKey.key}</td>
+                  <td style={{ padding: '16px 24px', color: 'var(--text-secondary)' }}>{apiKey.scopes}</td>
+                  <td style={{ padding: '16px 24px', color: 'var(--text-secondary)' }}>{apiKey.created_at}</td>
+                  <td style={{ padding: '16px 24px' }}>
+                    <div className="status-indicator" style={{ color: apiKey.status === 'Active' ? '#10b981' : '#ff7b72' }}>
+                      <div className="dot" style={{ background: apiKey.status === 'Active' ? '#10b981' : '#ff7b72' }}></div> 
+                      {apiKey.status}
+                    </div>
+                  </td>
+                  <td style={{ padding: '16px 24px', cursor: 'pointer' }}>⋮</td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>

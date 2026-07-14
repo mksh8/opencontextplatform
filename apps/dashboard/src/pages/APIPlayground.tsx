@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 
 export default function APIPlayground() {
-  const [requestUrl, setRequestUrl] = useState('http://localhost:8000/api/v1/context/search');
+  const [requestUrl, setRequestUrl] = useState('http://localhost:8000/api/v1/search/');
   const [requestBody, setRequestBody] = useState('{\n  "query": "authentication bug",\n  "filters": {\n    "type": ["code", "issue"],\n    "source": ["github", "slack"]\n  },\n  "limit": 10\n}');
   const [responseBody, setResponseBody] = useState('// Click send to fetch data from backend');
   const [status, setStatus] = useState<string | null>(null);

@@ -1,6 +1,39 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import apiClient from '../api/client';
+
+interface GraphNode {
+  id: string;
+  label: string;
+  type: string;
+  x: number;
+  y: number;
+  color: string;
+}
+
+interface GraphEdge {
+  source_id: string;
+  target_id: string;
+  label: string;
+}
+
+interface GraphData {
+  nodes: GraphNode[];
+  edges: GraphEdge[];
+}
 
 export default function GraphExplorer() {
+  const [graphData, setGraphData] = useState<GraphData | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const orgId = "org_alpha_123";
+    apiClient.get(`/graph/${orgId}/explorer`)
+      .then(response => {
+        setGraphData(response.data);
+      })
+      .catch(error => console.error("Error fetching graph data:", error))
+      .finally(() => setLoading(false));
+  }, []);
   return (
     <>
       <div className="page-header" style={{ marginBottom: 16 }}>
@@ -52,32 +85,48 @@ export default function GraphExplorer() {
         {/* Center Graph Area */}
         <div className="widget" style={{ flex: 1, padding: 0, position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <svg width="100%" height="100%" viewBox="0 0 600 400">
-            {/* Edges */}
-            <line x1="300" y1="200" x2="150" y2="100" stroke="var(--border-color)" strokeWidth="2" />
-            <line x1="300" y1="200" x2="450" y2="100" stroke="var(--border-color)" strokeWidth="2" />
-            <line x1="300" y1="200" x2="150" y2="300" stroke="var(--border-color)" strokeWidth="2" />
-            <line x1="300" y1="200" x2="450" y2="300" stroke="var(--border-color)" strokeWidth="2" />
+            {loading ? (
+              <text x="300" y="200" fill="var(--text-secondary)" fontSize="14" textAnchor="middle">Loading graph...</text>
+            ) : !graphData ? (
+              <text x="300" y="200" fill="var(--text-secondary)" fontSize="14" textAnchor="middle">No graph data.</text>
+            ) : (
+              <>
+                {/* Edges */}
+                {graphData.edges.map((edge, idx) => {
+                  const source = graphData.nodes.find(n => n.id === edge.source_id);
+                  const target = graphData.nodes.find(n => n.id === edge.target_id);
+                  if (!source || !target) return null;
+                  
+                  return (
+                    <g key={`edge-${idx}`}>
+                      <line x1={source.x} y1={source.y} x2={target.x} y2={target.y} stroke="var(--border-color)" strokeWidth="2" />
+                      <text x={(source.x + target.x) / 2} y={((source.y + target.y) / 2) - 5} fill="var(--text-secondary)" fontSize="9" textAnchor="middle">{edge.label}</text>
+                    </g>
+                  );
+                })}
 
-            {/* Central Node */}
-            <circle cx="300" cy="200" r="30" fill="var(--accent-purple)" />
-            <text x="300" y="235" fill="#fff" fontSize="10" textAnchor="middle" fontWeight="500">UserService.py</text>
-
-            {/* Connecting Nodes */}
-            <rect x="90" y="80" width="120" height="40" rx="20" fill="var(--bg-panel)" stroke="var(--accent-blue)" strokeWidth="2" />
-            <text x="150" y="104" fill="var(--text-primary)" fontSize="10" textAnchor="middle">AuthService.py</text>
-            <text x="210" y="145" fill="var(--text-secondary)" fontSize="9">imports</text>
-
-            <rect x="390" y="80" width="120" height="40" rx="20" fill="var(--bg-panel)" stroke="var(--accent-green)" strokeWidth="2" />
-            <text x="450" y="104" fill="var(--text-primary)" fontSize="10" textAnchor="middle">UserController.py</text>
-            <text x="360" y="145" fill="var(--text-secondary)" fontSize="9">called_by</text>
-
-            <rect x="90" y="280" width="120" height="40" rx="20" fill="var(--bg-panel)" stroke="var(--accent-yellow)" strokeWidth="2" />
-            <text x="150" y="304" fill="var(--text-primary)" fontSize="10" textAnchor="middle">Database.py</text>
-            <text x="200" y="260" fill="var(--text-secondary)" fontSize="9">uses</text>
-
-            <rect x="390" y="280" width="120" height="40" rx="20" fill="var(--bg-panel)" stroke="#ff7b72" strokeWidth="2" />
-            <text x="450" y="304" fill="var(--text-primary)" fontSize="10" textAnchor="middle">PR #452</text>
-            <text x="380" y="260" fill="var(--text-secondary)" fontSize="9">modified_in</text>
+                {/* Nodes */}
+                {graphData.nodes.map((node) => {
+                  const isCenter = node.id === 'n1';
+                  
+                  if (isCenter) {
+                    return (
+                      <g key={node.id}>
+                        <circle cx={node.x} cy={node.y} r="30" fill={node.color} />
+                        <text x={node.x} y={node.y + 35} fill="#fff" fontSize="10" textAnchor="middle" fontWeight="500">{node.label}</text>
+                      </g>
+                    );
+                  } else {
+                    return (
+                      <g key={node.id}>
+                        <rect x={node.x - 60} y={node.y - 20} width="120" height="40" rx="20" fill="var(--bg-panel)" stroke={node.color} strokeWidth="2" />
+                        <text x={node.x} y={node.y + 4} fill="var(--text-primary)" fontSize="10" textAnchor="middle">{node.label}</text>
+                      </g>
+                    );
+                  }
+                })}
+              </>
+            )}
           </svg>
         </div>
 

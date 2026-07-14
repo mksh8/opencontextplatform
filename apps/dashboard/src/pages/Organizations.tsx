@@ -1,6 +1,24 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { apiClient } from '../api/client';
 
 export default function Organizations() {
+  const [organizations, setOrganizations] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    apiClient.get('/organizations')
+      .then(res => {
+        setOrganizations(res.data);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error("Failed to load organizations", err);
+        setError("Failed to load organizations from API");
+        setLoading(false);
+      });
+  }, []);
+  
   return (
     <>
       <div className="page-header">
@@ -24,50 +42,27 @@ export default function Organizations() {
             </tr>
           </thead>
           <tbody>
-            <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
-              <td style={{ padding: '16px 24px', display: 'flex', gap: 12, alignItems: 'center' }}>
-                <div style={{ width: 24, height: 24, background: 'var(--accent-purple)', borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>A</div>
-                <div style={{ fontWeight: 500, color: '#fff' }}>Acme Corp</div>
-              </td>
-              <td style={{ padding: '16px 24px', color: 'var(--text-secondary)' }}>24</td>
-              <td style={{ padding: '16px 24px', color: 'var(--text-secondary)' }}>5</td>
-              <td style={{ padding: '16px 24px', color: 'var(--text-secondary)' }}>Enterprise</td>
-              <td style={{ padding: '16px 24px' }}><div className="status-indicator"><div className="dot"></div> Active</div></td>
-              <td style={{ padding: '16px 24px' }}>⋮</td>
-            </tr>
-            <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
-              <td style={{ padding: '16px 24px', display: 'flex', gap: 12, alignItems: 'center' }}>
-                <div style={{ width: 24, height: 24, background: 'var(--accent-blue)', borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>O</div>
-                <div style={{ fontWeight: 500, color: '#fff' }}>Open Source Community</div>
-              </td>
-              <td style={{ padding: '16px 24px', color: 'var(--text-secondary)' }}>128</td>
-              <td style={{ padding: '16px 24px', color: 'var(--text-secondary)' }}>8</td>
-              <td style={{ padding: '16px 24px', color: 'var(--text-secondary)' }}>Community</td>
-              <td style={{ padding: '16px 24px' }}><div className="status-indicator"><div className="dot"></div> Active</div></td>
-              <td style={{ padding: '16px 24px' }}>⋮</td>
-            </tr>
-            <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
-              <td style={{ padding: '16px 24px', display: 'flex', gap: 12, alignItems: 'center' }}>
-                <div style={{ width: 24, height: 24, background: 'var(--accent-green)', borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>S</div>
-                <div style={{ fontWeight: 500, color: '#fff' }}>Startup Inc</div>
-              </td>
-              <td style={{ padding: '16px 24px', color: 'var(--text-secondary)' }}>12</td>
-              <td style={{ padding: '16px 24px', color: 'var(--text-secondary)' }}>3</td>
-              <td style={{ padding: '16px 24px', color: 'var(--text-secondary)' }}>Pro</td>
-              <td style={{ padding: '16px 24px' }}><div className="status-indicator"><div className="dot"></div> Active</div></td>
-              <td style={{ padding: '16px 24px' }}>⋮</td>
-            </tr>
-            <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
-              <td style={{ padding: '16px 24px', display: 'flex', gap: 12, alignItems: 'center' }}>
-                <div style={{ width: 24, height: 24, background: 'var(--accent-yellow)', borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>R</div>
-                <div style={{ fontWeight: 500, color: '#fff' }}>Research Lab</div>
-              </td>
-              <td style={{ padding: '16px 24px', color: 'var(--text-secondary)' }}>18</td>
-              <td style={{ padding: '16px 24px', color: 'var(--text-secondary)' }}>4</td>
-              <td style={{ padding: '16px 24px', color: 'var(--text-secondary)' }}>Pro</td>
-              <td style={{ padding: '16px 24px' }}><div className="status-indicator"><div className="dot"></div> Active</div></td>
-              <td style={{ padding: '16px 24px' }}>⋮</td>
-            </tr>
+            {loading ? (
+              <tr><td colSpan={6} style={{ padding: '24px', textAlign: 'center', color: 'var(--text-secondary)' }}>Loading organizations...</td></tr>
+            ) : error ? (
+              <tr><td colSpan={6} style={{ padding: '24px', textAlign: 'center', color: '#ff7b72' }}>{error}</td></tr>
+            ) : (
+              organizations.map(org => (
+                <tr key={org.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
+                  <td style={{ padding: '16px 24px', display: 'flex', gap: 12, alignItems: 'center' }}>
+                    <div style={{ width: 24, height: 24, background: 'var(--accent-purple)', borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
+                      {org.name.charAt(0)}
+                    </div>
+                    <div style={{ fontWeight: 500, color: '#fff' }}>{org.name}</div>
+                  </td>
+                  <td style={{ padding: '16px 24px', color: 'var(--text-secondary)' }}>-</td>
+                  <td style={{ padding: '16px 24px', color: 'var(--text-secondary)' }}>{org.workspaces?.length || 0}</td>
+                  <td style={{ padding: '16px 24px', color: 'var(--text-secondary)' }}>{org.plan}</td>
+                  <td style={{ padding: '16px 24px' }}><div className="status-indicator"><div className="dot"></div> Active</div></td>
+                  <td style={{ padding: '16px 24px' }}>⋮</td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>

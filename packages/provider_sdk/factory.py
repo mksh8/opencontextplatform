@@ -1,20 +1,29 @@
-from typing import Dict, Any
 from .interfaces import (
-    ILLMProvider, IEmbeddingProvider, IRerankerProvider, 
-    IVectorDBProvider, IGraphDBProvider, ISQLMetadataProvider, 
-    IStorageProvider, ICacheProvider
+    ILLMProvider,
+    IEmbeddingProvider,
+    IRerankerProvider,
+    IVectorDBProvider,
+    IGraphDBProvider,
+    ISQLMetadataProvider,
+    IStorageProvider,
+    ICacheProvider,
 )
 from .implementations import (
-    OpenAIProvider, PineconeProvider, Neo4jProvider, 
-    PostgresProvider, S3StorageProvider, RedisCacheProvider, 
-    CohereRerankerProvider
+    OpenAIProvider,
+    PineconeProvider,
+    Neo4jProvider,
+    PostgresProvider,
+    S3StorageProvider,
+    RedisCacheProvider,
+    CohereRerankerProvider,
 )
+
 
 class ProviderFactory:
     """
     Dynamically loads and instantiates the correct provider based on configuration.
     """
-    
+
     @staticmethod
     def get_llm_provider(name: str) -> ILLMProvider:
         if name == "openai":

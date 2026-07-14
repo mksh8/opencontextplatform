@@ -3,22 +3,31 @@ from runtime.retrieval_engine import RetrievalEngine
 from runtime.memory_engine import MemoryEngine
 from packages.cloud.billing import StripeBillingProvider
 
-# Global Singleton Instantiation for Core Engines
-# In a full production setup, these would be managed via FastAPI DI or a container.
+# Simple poor-man's cache for singleton instances
+_cache = {}
 
-db_provider = ArcadeDBProvider()
-db_provider.connect()
 
-retrieval_engine = RetrievalEngine(db_provider)
-memory_engine = MemoryEngine(db_provider)
+def get_arcadedb_provider() -> ArcadeDBProvider:
+    if "db" not in _cache:
+        provider = ArcadeDBProvider()
+        provider.connect()
+        _cache["db"] = provider
+    return _cache["db"]
 
-billing_provider = StripeBillingProvider(api_key="sk_test_mock")
 
 def get_retrieval_engine() -> RetrievalEngine:
-    return retrieval_engine
+    if "retrieval" not in _cache:
+        _cache["retrieval"] = RetrievalEngine(get_arcadedb_provider())
+    return _cache["retrieval"]
+
 
 def get_memory_engine() -> MemoryEngine:
-    return memory_engine
+    if "memory" not in _cache:
+        _cache["memory"] = MemoryEngine(get_arcadedb_provider())
+    return _cache["memory"]
+
 
 def get_billing_provider() -> StripeBillingProvider:
-    return billing_provider
+    if "billing" not in _cache:
+        _cache["billing"] = StripeBillingProvider(api_key="sk_test_mock")
+    return _cache["billing"]

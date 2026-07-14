@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { apiClient } from '../api/client';
 
 interface ContextItem {
   id: string;
@@ -16,13 +17,9 @@ export default function Contexts() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch('http://localhost:8000/api/v1/contexts')
+    apiClient.get('/contexts')
       .then(res => {
-        if (!res.ok) throw new Error('Network response was not ok');
-        return res.json();
-      })
-      .then(data => {
-        setContexts(data.data);
+        setContexts(res.data.data);
         setLoading(false);
       })
       .catch(err => {
