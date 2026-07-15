@@ -25,8 +25,17 @@ export default function Sidebar() {
         <NavLink to="/dashboard/storage" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>💾</span> Storage</NavLink>
         <NavLink to="/dashboard/agent" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>🕵️</span> Agent Analytics</NavLink>
         
-        <div className="nav-section-title" style={{ marginTop: 24 }}>Context</div>
-        <NavLink to="/contexts" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>📦</span> Contexts</NavLink>
+        <div className="nav-section-title" style={{ marginTop: 24 }}>Context Management</div>
+        <NavLink to="/contexts/all" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>📦</span> All Contexts</NavLink>
+        <NavLink to="/contexts/create" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>➕</span> Create Context</NavLink>
+        <NavLink to="/contexts/details" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>📄</span> Details & Editor</NavLink>
+        <NavLink to="/contexts/history" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>🕰️</span> Version History</NavLink>
+        <NavLink to="/contexts/metadata" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>🏷️</span> Metadata & Tags</NavLink>
+        <NavLink to="/contexts/permissions" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>🔒</span> Permissions</NavLink>
+        <NavLink to="/contexts/embeddings" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>🔢</span> Embeddings</NavLink>
+        <NavLink to="/contexts/chunks" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>🧩</span> Chunks</NavLink>
+        <NavLink to="/contexts/relationships" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>🕸️</span> Relationships</NavLink>
+        <NavLink to="/contexts/summary" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>✨</span> AI Summary</NavLink>
         <NavLink to="/memories" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>🗄️</span> Memories</NavLink>
         <NavLink to="/collections" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>📂</span> Collections</NavLink>
         <NavLink to="/search" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>🔍</span> Search</NavLink>

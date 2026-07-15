@@ -16,7 +16,20 @@ import SearchAnalytics from './pages/dashboard/SearchAnalytics';
 import APIAnalytics from './pages/dashboard/APIAnalytics';
 import StorageAnalytics from './pages/dashboard/StorageAnalytics';
 import AgentAnalytics from './pages/dashboard/AgentAnalytics';
-import Contexts from './pages/Contexts';
+
+// New Context Imports
+import AllContexts from './pages/contexts/AllContexts';
+import ContextDetails from './pages/contexts/ContextDetails';
+import ContextEditor from './pages/contexts/ContextEditor';
+import CreateContext from './pages/contexts/CreateContext';
+import VersionHistory from './pages/contexts/VersionHistory';
+import MetadataViewer from './pages/contexts/MetadataViewer';
+import ContextPermissions from './pages/contexts/ContextPermissions';
+import EmbeddingsViewer from './pages/contexts/EmbeddingsViewer';
+import ContextChunks from './pages/contexts/ContextChunks';
+import Relationships from './pages/contexts/Relationships';
+import TagsManager from './pages/contexts/TagsManager';
+import AISummary from './pages/contexts/AISummary';
 import Collections from './pages/Collections';
 import Memories from './pages/Memories';
 import Search from './pages/Search';
@@ -64,7 +77,19 @@ export default function App() {
           <Route path="dashboard/storage" element={<StorageAnalytics />} />
           <Route path="dashboard/agent" element={<AgentAnalytics />} />
           
-          <Route path="contexts" element={<Contexts />} />
+          <Route path="contexts/all" element={<AllContexts />} />
+          <Route path="contexts/details" element={<ContextDetails />} />
+          <Route path="contexts/editor" element={<ContextEditor />} />
+          <Route path="contexts/create" element={<CreateContext />} />
+          <Route path="contexts/history" element={<VersionHistory />} />
+          <Route path="contexts/metadata" element={<MetadataViewer />} />
+          <Route path="contexts/permissions" element={<ContextPermissions />} />
+          <Route path="contexts/embeddings" element={<EmbeddingsViewer />} />
+          <Route path="contexts/chunks" element={<ContextChunks />} />
+          <Route path="contexts/relationships" element={<Relationships />} />
+          <Route path="contexts/tags" element={<TagsManager />} />
+          <Route path="contexts/summary" element={<AISummary />} />
+          
           <Route path="memories" element={<Memories />} />
           <Route path="collections" element={<Collections />} />
           <Route path="search" element={<Search />} />
