@@ -1,3 +1,6 @@
+import secrets
+import string
+import datetime
 from typing import List
 from apps.api.app.modules.billing.schemas import (
     UsageMetrics,
@@ -6,12 +9,28 @@ from apps.api.app.modules.billing.schemas import (
     APIKey,
 )
 
+class APIKeyGenerator:
+    """Helper to generate cryptographically secure API keys."""
+    @staticmethod
+    def generate_key(prefix: str = "ocp_live_") -> str:
+        # Generate 32 bytes of secure random hex
+        secure_hash = secrets.token_hex(32)
+        return f"{prefix}{secure_hash}"
 
 class BillingService:
+    def _fetch_stripe_usage(self, org_id: str) -> dict:
+        """Mock method simulating fetching aggregated metering from Stripe."""
+        return {
+            "tokens": "2.45B",
+            "queries": "245.6K",
+            "estimated_cost": "$245.60"
+        }
+
     def get_usage(self, org_id: str) -> UsageMetrics:
-        """Returns mock usage metrics."""
+        """Returns mock usage metrics enriched by simulated Stripe metering."""
+        stripe_data = self._fetch_stripe_usage(org_id)
         return UsageMetrics(
-            total_tokens="2.45B",
+            total_tokens=stripe_data["tokens"],
             tokens_trend="↑ 18.7%",
             total_queries="245.6K",
             queries_trend="↑ 15.2%",
@@ -35,11 +54,11 @@ class BillingService:
 
     def get_api_keys(self, org_id: str) -> List[APIKey]:
         """Returns mock API keys."""
+        now = datetime.datetime.utcnow().strftime("%b %d, %Y")
         return [
-            APIKey(name="Production Key", key="ocp_live_••••••••", scopes="All", created_at="May 10, 2024", status="Active"),
-            APIKey(name="Development Key", key="ocp_dev_••••••••", scopes="Read, Write", created_at="May 11, 2024", status="Active"),
-            APIKey(name="Read Only Key", key="ocp_ro_••••••••", scopes="Read", created_at="May 12, 2024", status="Active"),
-            APIKey(name="Service Key", key="ocp_svc_••••••••", scopes="All", created_at="May 13, 2024", status="Revoked"),
+            APIKey(name="Production Key", key=APIKeyGenerator.generate_key("ocp_live_")[:18] + "••••••••", scopes="All", created_at=now, status="Active"),
+            APIKey(name="Development Key", key=APIKeyGenerator.generate_key("ocp_dev_")[:18] + "••••••••", scopes="Read, Write", created_at=now, status="Active"),
+            APIKey(name="Read Only Key", key=APIKeyGenerator.generate_key("ocp_ro_")[:18] + "••••••••", scopes="Read", created_at=now, status="Active"),
         ]
 
 

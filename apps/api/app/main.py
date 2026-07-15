@@ -3,6 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from apps.api.app.core.config import settings
 from apps.api.app.api.v1.router import v1_router
 
+from apps.api.app.core.middleware import RateLimitMiddleware
+
 app = FastAPI(
     title=settings.PROJECT_NAME,
     version=settings.VERSION,
@@ -17,6 +19,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Configure Rate Limiting Middleware
+app.add_middleware(RateLimitMiddleware, max_requests_per_minute=100)
 
 
 @app.get("/")
