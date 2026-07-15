@@ -1,6 +1,9 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './components/Layout';
+import Login from './pages/Login';
+import Signup from './pages/Signup';
+import TenantOnboarding from './pages/TenantOnboarding';
 import Dashboard from './pages/Dashboard';
 import Contexts from './pages/Contexts';
 import Collections from './pages/Collections';
@@ -25,10 +28,19 @@ import AuditLogs from './pages/AuditLogs';
 import Billing from './pages/Billing';
 
 export default function App() {
+  // A simple mock auth guard checking if token exists
+  const isAuthenticated = !!localStorage.getItem('ocp_token');
+
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Layout />}>
+        {/* Public Authentication Routes */}
+        <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<Signup />} />
+        <Route path="/onboard" element={<TenantOnboarding />} />
+
+        {/* Protected Dashboard Routes */}
+        <Route path="/" element={isAuthenticated ? <Layout /> : <Navigate to="/login" replace />}>
           <Route index element={<Dashboard />} />
           <Route path="contexts" element={<Contexts />} />
           <Route path="memories" element={<Memories />} />
