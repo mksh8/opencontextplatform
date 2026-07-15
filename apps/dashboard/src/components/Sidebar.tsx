@@ -13,9 +13,17 @@ export default function Sidebar() {
       </div>
 
       <div className="nav-section">
-        <NavLink to="/" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"} end>
-          <span>🏠</span> Dashboard
-        </NavLink>
+        <div className="nav-section-title">Dashboards</div>
+        <NavLink to="/dashboard/executive" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>📈</span> Executive</NavLink>
+        <NavLink to="/dashboard/ai-activity" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>🤖</span> AI Activity</NavLink>
+        <NavLink to="/dashboard/context-health" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>❤️</span> Context Health</NavLink>
+        <NavLink to="/dashboard/cost" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>💰</span> Cost Analytics</NavLink>
+        <NavLink to="/dashboard/provider" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>⚡</span> Provider Stats</NavLink>
+        <NavLink to="/dashboard/workspace" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>🏢</span> Workspace</NavLink>
+        <NavLink to="/dashboard/search" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>🔍</span> Search Analytics</NavLink>
+        <NavLink to="/dashboard/api" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>📡</span> API Analytics</NavLink>
+        <NavLink to="/dashboard/storage" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>💾</span> Storage</NavLink>
+        <NavLink to="/dashboard/agent" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>🕵️</span> Agent Analytics</NavLink>
         
         <div className="nav-section-title" style={{ marginTop: 24 }}>Context</div>
         <NavLink to="/contexts" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>📦</span> Contexts</NavLink>

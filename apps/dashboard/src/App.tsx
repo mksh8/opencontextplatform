@@ -4,7 +4,18 @@ import Layout from './components/Layout';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import TenantOnboarding from './pages/TenantOnboarding';
-import Dashboard from './pages/Dashboard';
+
+// New Dashboard Imports
+import ExecutiveDashboard from './pages/dashboard/ExecutiveDashboard';
+import AIActivityDashboard from './pages/dashboard/AIActivityDashboard';
+import ContextHealth from './pages/dashboard/ContextHealth';
+import CostAnalytics from './pages/dashboard/CostAnalytics';
+import ProviderAnalytics from './pages/dashboard/ProviderAnalytics';
+import WorkspaceAnalytics from './pages/dashboard/WorkspaceAnalytics';
+import SearchAnalytics from './pages/dashboard/SearchAnalytics';
+import APIAnalytics from './pages/dashboard/APIAnalytics';
+import StorageAnalytics from './pages/dashboard/StorageAnalytics';
+import AgentAnalytics from './pages/dashboard/AgentAnalytics';
 import Contexts from './pages/Contexts';
 import Collections from './pages/Collections';
 import Memories from './pages/Memories';
@@ -39,9 +50,20 @@ export default function App() {
         <Route path="/signup" element={<Signup />} />
         <Route path="/onboard" element={<TenantOnboarding />} />
 
-        {/* Protected Dashboard Routes */}
+        {/* Protected Routes */}
         <Route path="/" element={isAuthenticated ? <Layout /> : <Navigate to="/login" replace />}>
-          <Route index element={<Dashboard />} />
+          <Route index element={<Navigate to="/dashboard/executive" replace />} />
+          <Route path="dashboard/executive" element={<ExecutiveDashboard />} />
+          <Route path="dashboard/ai-activity" element={<AIActivityDashboard />} />
+          <Route path="dashboard/context-health" element={<ContextHealth />} />
+          <Route path="dashboard/cost" element={<CostAnalytics />} />
+          <Route path="dashboard/provider" element={<ProviderAnalytics />} />
+          <Route path="dashboard/workspace" element={<WorkspaceAnalytics />} />
+          <Route path="dashboard/search" element={<SearchAnalytics />} />
+          <Route path="dashboard/api" element={<APIAnalytics />} />
+          <Route path="dashboard/storage" element={<StorageAnalytics />} />
+          <Route path="dashboard/agent" element={<AgentAnalytics />} />
+          
           <Route path="contexts" element={<Contexts />} />
           <Route path="memories" element={<Memories />} />
           <Route path="collections" element={<Collections />} />
