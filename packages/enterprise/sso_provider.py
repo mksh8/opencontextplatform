@@ -24,3 +24,22 @@ class Auth0Provider(ISSOProvider):
                 "roles": ["admin"],
             }
         raise ValueError("Invalid Token")
+
+
+class OktaProvider(ISSOProvider):
+    """Reference implementation for Okta SAML/OIDC."""
+
+    def __init__(self, domain: str, client_id: str):
+        self.domain = domain
+        self.client_id = client_id
+
+    def verify_token(self, token: str) -> Dict[str, Any]:
+        """Mocks JWT validation against Okta."""
+        if token == "valid_okta_jwt":
+            return {
+                "sub": "okta_user_456",
+                "email": "dev@enterprise.com",
+                "roles": ["contributor"],
+                "groups": ["engineering", "beta_testers"]
+            }
+        raise ValueError("Invalid Token")
