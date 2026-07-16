@@ -45,8 +45,16 @@ export default function Sidebar() {
         <NavLink to="/collections/permissions" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>🔒</span> Permissions</NavLink>
         <NavLink to="/collections/analytics" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>📈</span> Analytics</NavLink>
         
+        <div className="nav-section-title" style={{ marginTop: 24 }}>Search & Retrieval</div>
+        <NavLink to="/search/universal" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>🔍</span> Universal Search</NavLink>
+        <NavLink to="/search/hybrid" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>⚡</span> Hybrid Search</NavLink>
+        <NavLink to="/search/semantic" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>🧠</span> Semantic Search</NavLink>
+        <NavLink to="/search/graph" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>🕸️</span> Graph Search</NavLink>
+        <NavLink to="/search/saved" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>🔖</span> Saved Searches</NavLink>
+        <NavLink to="/search/history" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>📜</span> Search History</NavLink>
+        <NavLink to="/search/analytics" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>📊</span> Search Analytics</NavLink>
+        
         <NavLink to="/memories" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>🗄️</span> Memories</NavLink>
-        <NavLink to="/search" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>🔍</span> Search</NavLink>
         <NavLink to="/timeline" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>⏱️</span> Timeline</NavLink>
         <NavLink to="/graphexplorer" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>🕸️</span> Graph Explorer</NavLink>
 

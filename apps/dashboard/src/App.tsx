@@ -39,6 +39,15 @@ import NestedCollections from './pages/collections/NestedCollections';
 import CollectionPermissions from './pages/collections/CollectionPermissions';
 import CollectionAnalytics from './pages/collections/CollectionAnalytics';
 
+// New Search Imports
+import UniversalSearch from './pages/search/UniversalSearch';
+import SemanticSearch from './pages/search/SemanticSearch';
+import GraphSearch from './pages/search/GraphSearch';
+import HybridSearch from './pages/search/HybridSearch';
+import SavedSearches from './pages/search/SavedSearches';
+import SearchHistory from './pages/search/SearchHistory';
+import SearchAnalytics from './pages/search/SearchAnalytics';
+
 import Memories from './pages/Memories';
 import Search from './pages/Search';
 import Timeline from './pages/Timeline';
@@ -105,8 +114,15 @@ export default function App() {
           <Route path="collections/permissions" element={<CollectionPermissions />} />
           <Route path="collections/analytics" element={<CollectionAnalytics />} />
           
+          <Route path="search/universal" element={<UniversalSearch />} />
+          <Route path="search/semantic" element={<SemanticSearch />} />
+          <Route path="search/graph" element={<GraphSearch />} />
+          <Route path="search/hybrid" element={<HybridSearch />} />
+          <Route path="search/saved" element={<SavedSearches />} />
+          <Route path="search/history" element={<SearchHistory />} />
+          <Route path="search/analytics" element={<SearchAnalytics />} />
+          
           <Route path="memories" element={<Memories />} />
-          <Route path="search" element={<Search />} />
           <Route path="timeline" element={<Timeline />} />
           <Route path="connectors" element={<Connectors />} />
           <Route path="providers" element={<Providers />} />
