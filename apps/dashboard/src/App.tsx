@@ -30,7 +30,15 @@ import ContextChunks from './pages/contexts/ContextChunks';
 import Relationships from './pages/contexts/Relationships';
 import TagsManager from './pages/contexts/TagsManager';
 import AISummary from './pages/contexts/AISummary';
-import Collections from './pages/Collections';
+
+// New Collection Imports
+import CollectionsList from './pages/collections/CollectionsList';
+import CollectionDetails from './pages/collections/CollectionDetails';
+import CreateCollection from './pages/collections/CreateCollection';
+import NestedCollections from './pages/collections/NestedCollections';
+import CollectionPermissions from './pages/collections/CollectionPermissions';
+import CollectionAnalytics from './pages/collections/CollectionAnalytics';
+
 import Memories from './pages/Memories';
 import Search from './pages/Search';
 import Timeline from './pages/Timeline';
@@ -90,8 +98,14 @@ export default function App() {
           <Route path="contexts/tags" element={<TagsManager />} />
           <Route path="contexts/summary" element={<AISummary />} />
           
+          <Route path="collections/all" element={<CollectionsList />} />
+          <Route path="collections/details" element={<CollectionDetails />} />
+          <Route path="collections/create" element={<CreateCollection />} />
+          <Route path="collections/nested" element={<NestedCollections />} />
+          <Route path="collections/permissions" element={<CollectionPermissions />} />
+          <Route path="collections/analytics" element={<CollectionAnalytics />} />
+          
           <Route path="memories" element={<Memories />} />
-          <Route path="collections" element={<Collections />} />
           <Route path="search" element={<Search />} />
           <Route path="timeline" element={<Timeline />} />
           <Route path="connectors" element={<Connectors />} />

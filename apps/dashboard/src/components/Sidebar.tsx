@@ -36,8 +36,16 @@ export default function Sidebar() {
         <NavLink to="/contexts/chunks" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>🧩</span> Chunks</NavLink>
         <NavLink to="/contexts/relationships" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>🕸️</span> Relationships</NavLink>
         <NavLink to="/contexts/summary" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>✨</span> AI Summary</NavLink>
+        
+        <div className="nav-section-title" style={{ marginTop: 24 }}>Collections</div>
+        <NavLink to="/collections/all" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>📂</span> All Collections</NavLink>
+        <NavLink to="/collections/create" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>➕</span> Create Collection</NavLink>
+        <NavLink to="/collections/details" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>📄</span> Collection Details</NavLink>
+        <NavLink to="/collections/nested" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>🗂️</span> Nested Tree</NavLink>
+        <NavLink to="/collections/permissions" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>🔒</span> Permissions</NavLink>
+        <NavLink to="/collections/analytics" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>📈</span> Analytics</NavLink>
+        
         <NavLink to="/memories" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>🗄️</span> Memories</NavLink>
-        <NavLink to="/collections" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>📂</span> Collections</NavLink>
         <NavLink to="/search" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>🔍</span> Search</NavLink>
         <NavLink to="/timeline" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>⏱️</span> Timeline</NavLink>
         <NavLink to="/graphexplorer" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>🕸️</span> Graph Explorer</NavLink>
