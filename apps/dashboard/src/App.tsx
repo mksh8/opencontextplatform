@@ -48,6 +48,18 @@ import SavedSearches from './pages/search/SavedSearches';
 import SearchHistory from './pages/search/SearchHistory';
 import SearchAnalytics from './pages/search/SearchAnalytics';
 
+// New Connectors Imports
+import ConnectorMarketplace from './pages/connectors/ConnectorMarketplace';
+import InstalledConnectors from './pages/connectors/InstalledConnectors';
+import CreateConnector from './pages/connectors/CreateConnector';
+import ConnectorDetails from './pages/connectors/ConnectorDetails';
+import ConnectorAuth from './pages/connectors/ConnectorAuth';
+import ConnectorScheduling from './pages/connectors/ConnectorScheduling';
+import SyncHistory from './pages/connectors/SyncHistory';
+import ConnectorLogs from './pages/connectors/ConnectorLogs';
+import ConnectorHealth from './pages/connectors/ConnectorHealth';
+import ConnectorTemplates from './pages/connectors/ConnectorTemplates';
+
 import Memories from './pages/Memories';
 import Search from './pages/Search';
 import Timeline from './pages/Timeline';
@@ -122,9 +134,19 @@ export default function App() {
           <Route path="search/history" element={<SearchHistory />} />
           <Route path="search/analytics" element={<SearchAnalytics />} />
           
+          <Route path="connectors/marketplace" element={<ConnectorMarketplace />} />
+          <Route path="connectors/installed" element={<InstalledConnectors />} />
+          <Route path="connectors/create" element={<CreateConnector />} />
+          <Route path="connectors/details" element={<ConnectorDetails />} />
+          <Route path="connectors/auth" element={<ConnectorAuth />} />
+          <Route path="connectors/scheduling" element={<ConnectorScheduling />} />
+          <Route path="connectors/sync" element={<SyncHistory />} />
+          <Route path="connectors/logs" element={<ConnectorLogs />} />
+          <Route path="connectors/health" element={<ConnectorHealth />} />
+          <Route path="connectors/templates" element={<ConnectorTemplates />} />
+          
           <Route path="memories" element={<Memories />} />
           <Route path="timeline" element={<Timeline />} />
-          <Route path="connectors" element={<Connectors />} />
           <Route path="providers" element={<Providers />} />
           <Route path="settings" element={<Settings />} />
           <Route path="workspace" element={<Workspace />} />

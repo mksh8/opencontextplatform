@@ -58,11 +58,17 @@ export default function Sidebar() {
         <NavLink to="/timeline" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>⏱️</span> Timeline</NavLink>
         <NavLink to="/graphexplorer" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>🕸️</span> Graph Explorer</NavLink>
 
-        <div className="nav-section-title" style={{ marginTop: 24 }}>Connectors</div>
-        <NavLink to="/connectors" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>🔌</span> Connectors</NavLink>
-        <NavLink to="/sources" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>📥</span> Sources</NavLink>
-        <NavLink to="/ingestionjobs" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>⚙️</span> Ingestion Jobs</NavLink>
-        <NavLink to="/webhooks" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>🔗</span> Webhooks</NavLink>
+        <div className="nav-section-title" style={{ marginTop: 24 }}>Connectors & Pipelines</div>
+        <NavLink to="/connectors/marketplace" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>🛍️</span> Marketplace</NavLink>
+        <NavLink to="/connectors/installed" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>🔌</span> Installed</NavLink>
+        <NavLink to="/connectors/create" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>➕</span> Create Source</NavLink>
+        <NavLink to="/connectors/details" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>📄</span> Configuration</NavLink>
+        <NavLink to="/connectors/auth" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>🔑</span> Authentication</NavLink>
+        <NavLink to="/connectors/scheduling" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>⏰</span> Scheduling</NavLink>
+        <NavLink to="/connectors/sync" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>🔄</span> Sync History</NavLink>
+        <NavLink to="/connectors/logs" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>📜</span> Worker Logs</NavLink>
+        <NavLink to="/connectors/health" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>❤️</span> Health Telemetry</NavLink>
+        <NavLink to="/connectors/templates" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>📋</span> Templates</NavLink>
 
         <div className="nav-section-title" style={{ marginTop: 24 }}>Configuration</div>
         <NavLink to="/providers" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>⚡</span> Providers</NavLink>
