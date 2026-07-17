@@ -31,30 +31,34 @@ class MemoryEngine:
     def get_all_contexts(self) -> dict:
         """
         Retrieves all context objects from ArcadeDB.
-        Stubbed to return sample data representing the DB response.
         """
-        # In reality, this calls self.db.execute("SELECT FROM ContextNode")
+        # Execute query against ArcadeDB
+        results = self.db.execute_command("sql", "SELECT * FROM ContextNode ORDER BY @rid DESC LIMIT 50")
+        
+        # If ArcadeDB returns nothing or isn't connected, we fallback to an empty list
+        # We can map the returned ArcadeDB Document properties to our frontend schema
+        mapped_data = []
+        for row in results:
+            import json
+            metadata = {}
+            if "metadata_json" in row and row["metadata_json"]:
+                try:
+                    metadata = json.loads(row["metadata_json"])
+                except Exception:
+                    pass
+                    
+            mapped_data.append({
+                "id": str(row.get("id") or "unknown_id"),
+                "title": str(metadata.get("title") or row.get("id") or "Untitled"),
+                "type": str(row.get("type") or "Document"),
+                "source": str(row.get("provider") or "Unknown"),
+                "workspace": str(row.get("tenant_id") or "Default"),
+                "tokens": str(metadata.get("tokens") or "0"),
+                "updated": "Just now", # In reality, parse from ArcadeDB timestamp
+            })
+
         return {
-            "data": [
-                {
-                    "id": "ctx_1_from_arcadedb",
-                    "title": "[ArcadeDB] Fix authentication bug",
-                    "type": "Code",
-                    "source": "GitHub",
-                    "workspace": "Engineering",
-                    "tokens": "4.5K",
-                    "updated": "2m ago",
-                },
-                {
-                    "id": "ctx_2_from_arcadedb",
-                    "title": "[ArcadeDB] User profile details",
-                    "type": "Documentation",
-                    "source": "Confluence",
-                    "workspace": "Engineering",
-                    "tokens": "2.1K",
-                    "updated": "5m ago",
-                },
-            ],
-            "total": 2,
+            "data": mapped_data,
+            "total": len(mapped_data),
             "page": 1,
         }

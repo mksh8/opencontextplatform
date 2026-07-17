@@ -24,7 +24,7 @@ export default function SearchHistory() {
         
         <div style={{ padding: '16px 24px', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-            <span style={{ fontSize: '15px', fontWeight: 500 }}>MATCH (u:User)-[:OWNS]->(c:Context)</span>
+            <span style={{ fontSize: '15px', fontWeight: 500 }}>{"MATCH (u:User)-[:OWNS]->(c:Context)"}</span>
             <span style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>1 hour ago</span>
           </div>
           <div style={{ display: 'flex', gap: '12px', fontSize: '13px', color: 'var(--text-secondary)' }}>

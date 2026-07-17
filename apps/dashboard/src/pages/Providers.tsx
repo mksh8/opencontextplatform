@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import apiClient from '../api/client';
+import { useToast } from '../contexts/ToastContext';
 
 interface Provider {
   id: string;
@@ -11,8 +12,11 @@ interface Provider {
 }
 
 export default function Providers() {
+  const [activeTab, setActiveTab] = useState('LLM Providers');
   const [providers, setProviders] = useState<Provider[]>([]);
   const [loading, setLoading] = useState(true);
+  const { addToast } = useToast();
+  const tabs = ['LLM Providers', 'Embedding Providers', 'Vector Providers', 'Graph Providers', 'Storage Providers'];
 
   useEffect(() => {
     const orgId = "org_alpha_123";
@@ -30,18 +34,30 @@ export default function Providers() {
           <h1>Providers</h1>
           <p>Configure your AI and data providers.</p>
         </div>
-        <button className="btn btn-primary">+ Add Provider</button>
+        <button className="btn btn-primary" onClick={() => addToast('Add Provider flow coming soon!', 'success')}>+ Add Provider</button>
       </div>
 
       <div style={{ borderBottom: '1px solid var(--border-color)', display: 'flex', gap: 32, marginBottom: 24 }}>
-        <div style={{ paddingBottom: 12, borderBottom: '2px solid var(--accent-purple)', color: '#fff', fontSize: 13, fontWeight: 500, cursor: 'pointer' }}>LLM Providers</div>
-        <div style={{ paddingBottom: 12, color: 'var(--text-secondary)', fontSize: 13, cursor: 'pointer' }}>Embedding Providers</div>
-        <div style={{ paddingBottom: 12, color: 'var(--text-secondary)', fontSize: 13, cursor: 'pointer' }}>Vector Providers</div>
-        <div style={{ paddingBottom: 12, color: 'var(--text-secondary)', fontSize: 13, cursor: 'pointer' }}>Graph Providers</div>
-        <div style={{ paddingBottom: 12, color: 'var(--text-secondary)', fontSize: 13, cursor: 'pointer' }}>Storage Providers</div>
+        {tabs.map(tab => (
+          <div 
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            style={{ 
+              paddingBottom: 12, 
+              borderBottom: activeTab === tab ? '2px solid var(--accent-purple)' : '2px solid transparent', 
+              color: activeTab === tab ? '#fff' : 'var(--text-secondary)', 
+              fontSize: 13, 
+              fontWeight: 500, 
+              cursor: 'pointer' 
+            }}
+          >
+            {tab}
+          </div>
+        ))}
       </div>
 
-      <div className="widget" style={{ padding: 0, overflow: 'hidden' }}>
+      {activeTab === 'LLM Providers' ? (
+        <div className="widget" style={{ padding: 0, overflow: 'hidden' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: 13 }}>
           <thead>
             <tr style={{ borderBottom: '1px solid var(--border-color)', color: 'var(--text-secondary)' }}>
@@ -87,6 +103,12 @@ export default function Providers() {
           </tbody>
         </table>
       </div>
+      ) : (
+        <div className="widget" style={{ padding: 48, textAlign: 'center' }}>
+          <p style={{ color: 'var(--text-secondary)' }}>The {activeTab} section is currently under development.</p>
+          <button className="btn btn-primary" style={{ marginTop: 16 }} onClick={() => addToast(`Subscribed to ${activeTab} updates!`, 'success')}>Notify me when available</button>
+        </div>
+      )}
     </>
   );
 }

@@ -1,6 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { useToast } from '../contexts/ToastContext';
 
 export default function Search() {
+  const [activeTab, setActiveTab] = useState('All Results');
+  const { addToast } = useToast();
+  const tabs = ['All Results', 'Contexts', 'Memories', 'Collections'];
   return (
     <>
       <div className="page-header" style={{ marginBottom: 16 }}>
@@ -14,13 +18,26 @@ export default function Search() {
         <input type="text" className="search-bar" placeholder="🔍 Search anything..." style={{ width: '100%', padding: '12px 16px', fontSize: 16 }} />
         
         <div style={{ display: 'flex', gap: 24, marginTop: 16, borderBottom: '1px solid var(--border-color)' }}>
-          <div style={{ paddingBottom: 12, borderBottom: '2px solid var(--accent-purple)', color: '#fff', fontSize: 14, fontWeight: 500, cursor: 'pointer' }}>All Results</div>
-          <div style={{ paddingBottom: 12, color: 'var(--text-secondary)', fontSize: 14, cursor: 'pointer' }}>Contexts</div>
-          <div style={{ paddingBottom: 12, color: 'var(--text-secondary)', fontSize: 14, cursor: 'pointer' }}>Memories</div>
-          <div style={{ paddingBottom: 12, color: 'var(--text-secondary)', fontSize: 14, cursor: 'pointer' }}>Collections</div>
+          {tabs.map(tab => (
+            <div 
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              style={{ 
+                paddingBottom: 12, 
+                borderBottom: activeTab === tab ? '2px solid var(--accent-purple)' : '2px solid transparent', 
+                color: activeTab === tab ? '#fff' : 'var(--text-secondary)', 
+                fontSize: 14, 
+                fontWeight: 500, 
+                cursor: 'pointer' 
+              }}
+            >
+              {tab}
+            </div>
+          ))}
         </div>
       </div>
 
+      {activeTab === 'All Results' ? (
       <div style={{ display: 'flex', gap: 32 }}>
         {/* Results */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -75,6 +92,12 @@ export default function Search() {
           </div>
         </div>
       </div>
+      ) : (
+        <div className="widget" style={{ padding: 48, textAlign: 'center' }}>
+          <p style={{ color: 'var(--text-secondary)' }}>The {activeTab} section is currently under development.</p>
+          <button className="btn btn-primary" style={{ marginTop: 16 }} onClick={() => addToast(`Subscribed to ${activeTab} updates!`, 'success')}>Notify me when available</button>
+        </div>
+      )}
     </>
   );
 }

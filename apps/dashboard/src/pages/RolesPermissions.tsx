@@ -1,6 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { useToast } from '../contexts/ToastContext';
 
 export default function RolesPermissions() {
+  const [activeTab, setActiveTab] = useState('Roles');
+  const { addToast } = useToast();
+  const tabs = ['Roles', 'Permissions'];
   return (
     <>
       <div className="page-header">
@@ -11,11 +15,26 @@ export default function RolesPermissions() {
       </div>
 
       <div style={{ borderBottom: '1px solid var(--border-color)', display: 'flex', gap: 32, marginBottom: 24 }}>
-        <div style={{ paddingBottom: 12, borderBottom: '2px solid var(--accent-purple)', color: '#fff', fontSize: 13, fontWeight: 500, cursor: 'pointer' }}>Roles</div>
-        <div style={{ paddingBottom: 12, color: 'var(--text-secondary)', fontSize: 13, cursor: 'pointer' }}>Permissions</div>
+        {tabs.map(tab => (
+          <div 
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            style={{ 
+              paddingBottom: 12, 
+              borderBottom: activeTab === tab ? '2px solid var(--accent-purple)' : '2px solid transparent', 
+              color: activeTab === tab ? '#fff' : 'var(--text-secondary)', 
+              fontSize: 13, 
+              fontWeight: 500, 
+              cursor: 'pointer' 
+            }}
+          >
+            {tab}
+          </div>
+        ))}
       </div>
 
-      <div className="widget" style={{ padding: 0, overflow: 'hidden' }}>
+      {activeTab === 'Roles' ? (
+        <div className="widget" style={{ padding: 0, overflow: 'hidden' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: 13 }}>
           <thead>
             <tr style={{ borderBottom: '1px solid var(--border-color)', color: 'var(--text-secondary)' }}>
@@ -53,6 +72,12 @@ export default function RolesPermissions() {
           </tbody>
         </table>
       </div>
+      ) : (
+        <div className="widget" style={{ padding: 48, textAlign: 'center' }}>
+          <p style={{ color: 'var(--text-secondary)' }}>The {activeTab} section is currently under development.</p>
+          <button className="btn btn-primary" style={{ marginTop: 16 }} onClick={() => addToast(`Subscribed to ${activeTab} updates!`, 'success')}>Notify me when available</button>
+        </div>
+      )}
     </>
   );
 }

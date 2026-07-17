@@ -1,5 +1,7 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 import logging
+from apps.api.app.api.dependencies import get_db_session
+from sqlalchemy.orm import Session
 from apps.api.app.modules.auth.service import auth_service
 from apps.api.app.modules.auth.schemas import (
     UserProfile, 
@@ -14,28 +16,33 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 @router.post("/login", response_model=TokenResponse)
-def login(request: LoginRequest):
+def login(request: LoginRequest, db: Session = Depends(get_db_session)):
     """Authenticate and return JWT."""
     try:
-        return auth_service.login(request)
+        return auth_service.login(request, db)
+    except ValueError as e:
+        logger.error(f"Login validation error: {e}")
+        raise HTTPException(status_code=401, detail=str(e))
     except Exception:
         logger.exception("Login failed")
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
 @router.post("/signup", response_model=TokenResponse)
-def signup(request: SignupRequest):
+def signup(request: SignupRequest, db: Session = Depends(get_db_session)):
     """Create new account and return JWT."""
     try:
-        return auth_service.signup(request)
+        return auth_service.signup(request, db)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception:
         logger.exception("Signup failed")
         raise HTTPException(status_code=400, detail="Signup failed")
 
 @router.post("/onboard")
-def onboard_tenant(request: TenantCreateRequest):
+def onboard_tenant(request: TenantCreateRequest, db: Session = Depends(get_db_session)):
     """Provision a new organization tenant."""
     try:
-        return auth_service.onboard_tenant(request)
+        return auth_service.onboard_tenant(request, db)
     except Exception:
         logger.exception("Tenant onboarding failed")
         raise HTTPException(status_code=500, detail="Provisioning failed")

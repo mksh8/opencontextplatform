@@ -30,3 +30,7 @@ class APIKey(BaseModel):
     scopes: str
     created_at: str
     status: str
+
+class APIKeyCreateRequest(BaseModel):
+    name: str
+    scopes: str

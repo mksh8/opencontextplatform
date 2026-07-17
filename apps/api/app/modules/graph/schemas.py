@@ -17,3 +17,7 @@ class GraphEdge(BaseModel):
 class GraphData(BaseModel):
     nodes: List[GraphNode]
     edges: List[GraphEdge]
+
+class IndexCodeRequest(BaseModel):
+    file_name: str
+    source_code: str

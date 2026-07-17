@@ -83,12 +83,12 @@ export default function GraphExplorer() {
         </div>
 
         {/* Center Graph Area */}
-        <div className="widget" style={{ flex: 1, padding: 0, position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <svg width="100%" height="100%" viewBox="0 0 600 400">
+        <div className="widget" style={{ flex: 1, padding: 0, position: 'relative', overflow: 'auto', display: 'flex' }}>
+          <svg width="2000" height="1000" viewBox="-500 -200 2000 1000" style={{ minWidth: 2000, minHeight: 1000 }}>
             {loading ? (
               <text x="300" y="200" fill="var(--text-secondary)" fontSize="14" textAnchor="middle">Loading graph...</text>
-            ) : !graphData ? (
-              <text x="300" y="200" fill="var(--text-secondary)" fontSize="14" textAnchor="middle">No graph data.</text>
+            ) : !graphData || graphData.nodes.length === 0 ? (
+              <text x="300" y="200" fill="var(--text-secondary)" fontSize="14" textAnchor="middle">No graph data. Try indexing a file!</text>
             ) : (
               <>
                 {/* Edges */}
@@ -107,13 +107,13 @@ export default function GraphExplorer() {
 
                 {/* Nodes */}
                 {graphData.nodes.map((node) => {
-                  const isCenter = node.id === 'n1';
+                  const isFile = node.type === 'File';
                   
-                  if (isCenter) {
+                  if (isFile) {
                     return (
                       <g key={node.id}>
-                        <circle cx={node.x} cy={node.y} r="30" fill={node.color} />
-                        <text x={node.x} y={node.y + 35} fill="#fff" fontSize="10" textAnchor="middle" fontWeight="500">{node.label}</text>
+                        <circle cx={node.x} cy={node.y} r="40" fill={node.color} />
+                        <text x={node.x} y={node.y + 50} fill="#fff" fontSize="12" textAnchor="middle" fontWeight="600">{node.label}</text>
                       </g>
                     );
                   } else {

@@ -2,8 +2,15 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from apps.api.app.core.config import settings
 from apps.api.app.api.v1.router import v1_router
+from runtime.db import engine, Base
 
 from apps.api.app.core.middleware import RateLimitMiddleware
+
+# Create tables if they don't exist
+try:
+    Base.metadata.create_all(bind=engine)
+except Exception as e:
+    print(f"Failed to create tables (might already exist or DB down): {e}")
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -31,7 +38,6 @@ def read_root():
         "service": settings.PROJECT_NAME,
         "version": settings.VERSION,
     }
-
 
 # Include API v1 routers
 app.include_router(v1_router, prefix=settings.API_V1_STR)

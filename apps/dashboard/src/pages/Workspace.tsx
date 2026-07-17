@@ -1,6 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { useToast } from '../contexts/ToastContext';
 
 export default function Workspace() {
+  const [activeTab, setActiveTab] = useState('Overview');
+  const { addToast } = useToast();
+
+  const tabs = ['Overview', 'Members', 'Settings', 'API Keys', 'Usage', 'Billing'];
   return (
     <>
       <div className="page-header">
@@ -11,13 +16,27 @@ export default function Workspace() {
       </div>
 
       <div style={{ borderBottom: '1px solid var(--border-color)', display: 'flex', gap: 32, marginBottom: 24 }}>
-        <div style={{ paddingBottom: 12, borderBottom: '2px solid var(--accent-purple)', color: '#fff', fontSize: 13, fontWeight: 500, cursor: 'pointer' }}>Overview</div>
-        <div style={{ paddingBottom: 12, color: 'var(--text-secondary)', fontSize: 13, cursor: 'pointer' }}>Members</div>
-        <div style={{ paddingBottom: 12, color: 'var(--text-secondary)', fontSize: 13, cursor: 'pointer' }}>Settings</div>
-        <div style={{ paddingBottom: 12, color: 'var(--text-secondary)', fontSize: 13, cursor: 'pointer' }}>API Keys</div>
-        <div style={{ paddingBottom: 12, color: 'var(--text-secondary)', fontSize: 13, cursor: 'pointer' }}>Usage</div>
-        <div style={{ paddingBottom: 12, color: 'var(--text-secondary)', fontSize: 13, cursor: 'pointer' }}>Billing</div>
+        {tabs.map(tab => (
+          <div 
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            style={{ 
+              paddingBottom: 12, 
+              borderBottom: activeTab === tab ? '2px solid var(--accent-purple)' : '2px solid transparent', 
+              color: activeTab === tab ? '#fff' : 'var(--text-secondary)', 
+              fontSize: 13, 
+              fontWeight: 500, 
+              cursor: 'pointer' 
+            }}
+          >
+            {tab}
+          </div>
+        ))}
       </div>
+
+      {activeTab === 'Overview' ? (
+        <>
+
 
       {/* KPI GRID for Workspace */}
       <div className="kpi-grid" style={{ gridTemplateColumns: 'repeat(4, 1fr)' }}>
@@ -125,6 +144,13 @@ export default function Workspace() {
         </div>
 
       </div>
+      </>
+      ) : (
+        <div className="widget" style={{ padding: 48, textAlign: 'center' }}>
+          <p style={{ color: 'var(--text-secondary)' }}>The {activeTab} section is currently under development.</p>
+          <button className="btn btn-primary" style={{ marginTop: 16 }} onClick={() => addToast(`Subscribed to ${activeTab} updates!`, 'success')}>Notify me when available</button>
+        </div>
+      )}
     </>
   );
 }

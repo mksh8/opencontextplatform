@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useToast } from '../contexts/ToastContext';
 
 export default function APIPlayground() {
   const [requestUrl, setRequestUrl] = useState('http://localhost:8000/api/v1/search/');
@@ -7,6 +8,8 @@ export default function APIPlayground() {
   const [status, setStatus] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [time, setTime] = useState<number | null>(null);
+  const [activeTab, setActiveTab] = useState('Body');
+  const { addToast } = useToast();
 
   const handleSend = async () => {
     setLoading(true);
@@ -72,9 +75,20 @@ export default function APIPlayground() {
         {/* Request Editor */}
         <div className="widget" style={{ flex: 1, padding: 0, display: 'flex', flexDirection: 'column' }}>
           <div style={{ display: 'flex', gap: 24, padding: '12px 20px', borderBottom: '1px solid var(--border-color)', fontSize: 13 }}>
-            <span style={{ color: 'var(--text-secondary)', cursor: 'pointer' }}>Params</span>
-            <span style={{ color: 'var(--text-secondary)', cursor: 'pointer' }}>Headers</span>
-            <span style={{ color: '#fff', borderBottom: '2px solid var(--accent-purple)', paddingBottom: 11, cursor: 'pointer' }}>Body</span>
+            {['Params', 'Headers', 'Body'].map(tab => (
+              <span 
+                key={tab} 
+                onClick={() => setActiveTab(tab)}
+                style={{ 
+                  color: activeTab === tab ? '#fff' : 'var(--text-secondary)', 
+                  borderBottom: activeTab === tab ? '2px solid var(--accent-purple)' : '2px solid transparent', 
+                  paddingBottom: 11, 
+                  cursor: 'pointer' 
+                }}
+              >
+                {tab}
+              </span>
+            ))}
           </div>
           
           <div style={{ padding: '12px 20px', fontSize: 13, color: 'var(--text-secondary)', borderBottom: '1px solid var(--border-color)' }}>
@@ -82,12 +96,16 @@ export default function APIPlayground() {
           </div>
 
           <div style={{ flex: 1, padding: 0, fontFamily: 'monospace', fontSize: 13, background: '#0d1117', color: '#e6edf3', overflowY: 'auto' }}>
-            <textarea 
-              style={{ width: '100%', height: '100%', background: 'transparent', border: 'none', color: 'inherit', padding: 20, resize: 'none', fontFamily: 'inherit' }}
-              value={requestBody}
-              onChange={e => setRequestBody(e.target.value)}
-              spellCheck={false}
-            />
+            {activeTab === 'Body' ? (
+              <textarea 
+                style={{ width: '100%', height: '100%', background: 'transparent', border: 'none', color: 'inherit', padding: 20, resize: 'none', fontFamily: 'inherit' }}
+                value={requestBody}
+                onChange={e => setRequestBody(e.target.value)}
+                spellCheck={false}
+              />
+            ) : (
+              <div style={{ padding: 20, color: 'var(--text-secondary)' }}>{activeTab} configuration coming soon.</div>
+            )}
           </div>
         </div>
 

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import apiClient from '../api/client';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -8,6 +9,7 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -16,9 +18,7 @@ export default function Login() {
 
     try {
       const response = await apiClient.post('/auth/login', { email, password });
-      // Store token securely in real app, here we simulate local storage
-      localStorage.setItem('ocp_token', response.data.access_token);
-      localStorage.setItem('ocp_user', JSON.stringify(response.data.user));
+      login(response.data.access_token, response.data.user);
       navigate('/');
     } catch (err: any) {
       setError(err.response?.data?.detail || 'Invalid credentials.');

@@ -46,7 +46,7 @@ import GraphSearch from './pages/search/GraphSearch';
 import HybridSearch from './pages/search/HybridSearch';
 import SavedSearches from './pages/search/SavedSearches';
 import SearchHistory from './pages/search/SearchHistory';
-import SearchAnalytics from './pages/search/SearchAnalytics';
+import GlobalSearchAnalytics from './pages/search/SearchAnalytics';
 
 // New Connectors Imports
 import ConnectorMarketplace from './pages/connectors/ConnectorMarketplace';
@@ -59,6 +59,17 @@ import SyncHistory from './pages/connectors/SyncHistory';
 import ConnectorLogs from './pages/connectors/ConnectorLogs';
 import ConnectorHealth from './pages/connectors/ConnectorHealth';
 import ConnectorTemplates from './pages/connectors/ConnectorTemplates';
+
+// New Ingestion Imports
+import IngestionPipelines from './pages/ingestion/IngestionPipelines';
+import DataPreview from './pages/ingestion/DataPreview';
+import ETLConfig from './pages/ingestion/ETLConfig';
+import Validations from './pages/ingestion/Validations';
+import ChunkingStrategy from './pages/ingestion/ChunkingStrategy';
+import EmbeddingConfig from './pages/ingestion/EmbeddingConfig';
+import DeadLetterQueue from './pages/ingestion/DeadLetterQueue';
+import IngestionWebhooks from './pages/ingestion/IngestionWebhooks';
+import IngestionTelemetry from './pages/ingestion/IngestionTelemetry';
 
 import Memories from './pages/Memories';
 import Search from './pages/Search';
@@ -80,20 +91,23 @@ import RolesPermissions from './pages/RolesPermissions';
 import AuditLogs from './pages/AuditLogs';
 import Billing from './pages/Billing';
 
-export default function App() {
-  // A simple mock auth guard checking if token exists
-  const isAuthenticated = !!localStorage.getItem('ocp_token');
+import { ToastProvider } from './contexts/ToastContext';
+import { AuthProvider } from './contexts/AuthContext';
+import ProtectedRoute from './components/ProtectedRoute';
 
+export default function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        {/* Public Authentication Routes */}
+    <AuthProvider>
+    <ToastProvider>
+      <BrowserRouter>
+        <Routes>
+          {/* Public Authentication Routes */}
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/onboard" element={<TenantOnboarding />} />
 
         {/* Protected Routes */}
-        <Route path="/" element={isAuthenticated ? <Layout /> : <Navigate to="/login" replace />}>
+        <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
           <Route index element={<Navigate to="/dashboard/executive" replace />} />
           <Route path="dashboard/executive" element={<ExecutiveDashboard />} />
           <Route path="dashboard/ai-activity" element={<AIActivityDashboard />} />
@@ -107,8 +121,8 @@ export default function App() {
           <Route path="dashboard/agent" element={<AgentAnalytics />} />
           
           <Route path="contexts/all" element={<AllContexts />} />
-          <Route path="contexts/details" element={<ContextDetails />} />
-          <Route path="contexts/editor" element={<ContextEditor />} />
+          <Route path="contexts/details/:id" element={<ContextDetails />} />
+          <Route path="contexts/editor/:id" element={<ContextEditor />} />
           <Route path="contexts/create" element={<CreateContext />} />
           <Route path="contexts/history" element={<VersionHistory />} />
           <Route path="contexts/metadata" element={<MetadataViewer />} />
@@ -132,7 +146,7 @@ export default function App() {
           <Route path="search/hybrid" element={<HybridSearch />} />
           <Route path="search/saved" element={<SavedSearches />} />
           <Route path="search/history" element={<SearchHistory />} />
-          <Route path="search/analytics" element={<SearchAnalytics />} />
+          <Route path="search/analytics" element={<GlobalSearchAnalytics />} />
           
           <Route path="connectors/marketplace" element={<ConnectorMarketplace />} />
           <Route path="connectors/installed" element={<InstalledConnectors />} />
@@ -145,16 +159,23 @@ export default function App() {
           <Route path="connectors/health" element={<ConnectorHealth />} />
           <Route path="connectors/templates" element={<ConnectorTemplates />} />
           
+          <Route path="ingestion/pipelines" element={<IngestionPipelines />} />
+          <Route path="ingestion/preview" element={<DataPreview />} />
+          <Route path="ingestion/etl" element={<ETLConfig />} />
+          <Route path="ingestion/validations" element={<Validations />} />
+          <Route path="ingestion/chunking" element={<ChunkingStrategy />} />
+          <Route path="ingestion/embeddings" element={<EmbeddingConfig />} />
+          <Route path="ingestion/dlq" element={<DeadLetterQueue />} />
+          <Route path="ingestion/webhooks" element={<IngestionWebhooks />} />
+          <Route path="ingestion/telemetry" element={<IngestionTelemetry />} />
+          
           <Route path="memories" element={<Memories />} />
           <Route path="timeline" element={<Timeline />} />
           <Route path="providers" element={<Providers />} />
           <Route path="settings" element={<Settings />} />
           <Route path="workspace" element={<Workspace />} />
           <Route path="graphexplorer" element={<GraphExplorer />} />
-          <Route path="connectors" element={<Connectors />} />
           <Route path="sources" element={<Sources />} />
-          <Route path="ingestionjobs" element={<IngestionJobs />} />
-          <Route path="webhooks" element={<Webhooks />} />
           <Route path="models" element={<Models />} />
           <Route path="apikeys" element={<APIKeys />} />
           <Route path="apiplayground" element={<APIPlayground />} />
@@ -163,8 +184,18 @@ export default function App() {
           <Route path="roles" element={<RolesPermissions />} />
           <Route path="audit" element={<AuditLogs />} />
           <Route path="billing" element={<Billing />} />
+          
+          {/* Catch-all 404 Route */}
+          <Route path="*" element={
+            <div className="dashboard-content" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+              <h1 style={{ fontSize: '48px', color: 'var(--text-primary)', marginBottom: '16px' }}>404</h1>
+              <p style={{ color: 'var(--text-secondary)' }}>Page not found. The URL might be incorrect or missing an ID parameter.</p>
+            </div>
+          } />
         </Route>
       </Routes>
     </BrowserRouter>
+    </ToastProvider>
+    </AuthProvider>
   );
 }

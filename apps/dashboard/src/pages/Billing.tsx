@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import apiClient from '../api/client';
+import { useToast } from '../contexts/ToastContext';
 
 interface UsageMetrics {
   total_tokens: string;
@@ -24,9 +25,12 @@ interface InvoiceSummary {
 }
 
 export default function Billing() {
+  const [activeTab, setActiveTab] = useState('Overview');
   const [usage, setUsage] = useState<UsageMetrics | null>(null);
   const [invoices, setInvoices] = useState<InvoiceSummary | null>(null);
   const [loading, setLoading] = useState(true);
+  const { addToast } = useToast();
+  const tabs = ['Overview', 'Usage', 'Invoices'];
 
   useEffect(() => {
     const orgId = "org_alpha_123";
@@ -57,10 +61,26 @@ export default function Billing() {
       </div>
 
       <div style={{ borderBottom: '1px solid var(--border-color)', display: 'flex', gap: 32, marginBottom: 24 }}>
-        <div style={{ paddingBottom: 12, borderBottom: '2px solid var(--accent-purple)', color: '#fff', fontSize: 13, fontWeight: 500, cursor: 'pointer' }}>Overview</div>
-        <div style={{ paddingBottom: 12, color: 'var(--text-secondary)', fontSize: 13, cursor: 'pointer' }}>Usage</div>
-        <div style={{ paddingBottom: 12, color: 'var(--text-secondary)', fontSize: 13, cursor: 'pointer' }}>Invoices</div>
+        {tabs.map(tab => (
+          <div 
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            style={{ 
+              paddingBottom: 12, 
+              borderBottom: activeTab === tab ? '2px solid var(--accent-purple)' : '2px solid transparent', 
+              color: activeTab === tab ? '#fff' : 'var(--text-secondary)', 
+              fontSize: 13, 
+              fontWeight: 500, 
+              cursor: 'pointer' 
+            }}
+          >
+            {tab}
+          </div>
+        ))}
       </div>
+
+      {activeTab === 'Overview' ? (
+        <>
 
       {/* KPI GRID */}
       <div className="kpi-grid" style={{ gridTemplateColumns: 'repeat(4, 1fr)' }}>
@@ -140,6 +160,13 @@ export default function Billing() {
         </div>
 
       </div>
+      </>
+      ) : (
+        <div className="widget" style={{ padding: 48, textAlign: 'center' }}>
+          <p style={{ color: 'var(--text-secondary)' }}>The {activeTab} section is currently under development.</p>
+          <button className="btn btn-primary" style={{ marginTop: 16 }} onClick={() => addToast(`Subscribed to ${activeTab} updates!`, 'success')}>Notify me when available</button>
+        </div>
+      )}
     </>
   );
 }

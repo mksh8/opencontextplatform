@@ -1,4 +1,7 @@
-import secrets
+import uuid
+import bcrypt
+from jose import jwt
+from datetime import datetime, timedelta
 from apps.api.app.modules.auth.schemas import (
     UserProfile, 
     LoginRequest, 
@@ -6,6 +9,11 @@ from apps.api.app.modules.auth.schemas import (
     TenantCreateRequest, 
     TokenResponse
 )
+from sqlalchemy.orm import Session
+from runtime.models import User, Tenant
+
+SECRET_KEY = "super_secret_opencontext_key_for_jwt" # In production, load from env
+ALGORITHM = "HS256"
 
 class AuthService:
     def get_current_user(self) -> UserProfile:
@@ -17,34 +25,84 @@ class AuthService:
             avatar_url="https://ui-avatars.com/api/?name=Admin+User&background=random",
         )
 
-    def login(self, request: LoginRequest) -> TokenResponse:
-        """Simulates checking credentials and returning a token."""
-        # Mock behavior: Accept any valid payload
-        token = secrets.token_hex(16)
-        user = UserProfile(
-            id="usr_login_123",
-            email=request.email,
-            full_name="Existing User",
-            avatar_url=f"https://ui-avatars.com/api/?name=Existing+User&background=random"
-        )
-        return TokenResponse(access_token=token, user=user)
+    def _create_access_token(self, data: dict, expires_delta: timedelta = timedelta(minutes=1440)):
+        to_encode = data.copy()
+        expire = datetime.utcnow() + expires_delta
+        to_encode.update({"exp": expire})
+        return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
-    def signup(self, request: SignupRequest) -> TokenResponse:
-        """Simulates creating a new user and returning a token."""
-        token = secrets.token_hex(16)
-        user = UserProfile(
-            id="usr_new_456",
+    def login(self, request: LoginRequest, db: Session) -> TokenResponse:
+        """Checks credentials against PostgreSQL and returns a JWT token."""
+        user_record = db.query(User).filter(User.email == request.email).first()
+        if not user_record:
+            raise ValueError("Invalid credentials")
+            
+        stored_hash = user_record.password_hash
+        # Handle returned strings which might not be bytes
+        if isinstance(stored_hash, str):
+            stored_hash = stored_hash.encode("utf-8")
+            
+        try:
+            if not bcrypt.checkpw(request.password[:72].encode("utf-8"), stored_hash):
+                raise ValueError("Invalid credentials")
+        except ValueError:
+            raise ValueError("Invalid credentials")
+
+        token = self._create_access_token(data={"sub": user_record.email, "id": user_record.id})
+        
+        user_profile = UserProfile(
+            id=user_record.id,
+            email=user_record.email,
+            full_name=user_record.full_name or "User",
+            avatar_url=f"https://ui-avatars.com/api/?name={(user_record.full_name or 'User').replace(' ', '+')}&background=random"
+        )
+        return TokenResponse(access_token=token, user=user_profile)
+
+    def signup(self, request: SignupRequest, db: Session) -> TokenResponse:
+        """Creates a new user in PostgreSQL and returns a JWT token."""
+        # Check if user exists
+        existing = db.query(User).filter(User.email == request.email).first()
+        if existing:
+            raise ValueError("Email already registered")
+            
+        user_id = f"usr_{uuid.uuid4().hex[:8]}"
+        hashed_password = bcrypt.hashpw(request.password[:72].encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
+        
+        new_user = User(
+            id=user_id,
+            email=request.email,
+            password_hash=hashed_password,
+            full_name=request.full_name
+        )
+        db.add(new_user)
+        db.commit()
+        
+        token = self._create_access_token(data={"sub": request.email, "id": user_id})
+        
+        user_profile = UserProfile(
+            id=user_id,
             email=request.email,
             full_name=request.full_name,
             avatar_url=f"https://ui-avatars.com/api/?name={request.full_name.replace(' ', '+')}&background=random"
         )
-        return TokenResponse(access_token=token, user=user)
+        return TokenResponse(access_token=token, user=user_profile)
 
-    def onboard_tenant(self, request: TenantCreateRequest) -> dict:
-        """Simulates provisioning a new tenant."""
+    def onboard_tenant(self, request: TenantCreateRequest, db: Session) -> dict:
+        """Provisions a new tenant in PostgreSQL."""
+        tenant_id = f"tenant_{uuid.uuid4().hex[:8]}"
+        
+        new_tenant = Tenant(
+            id=tenant_id,
+            company_name=request.company_name,
+            industry=request.industry,
+            team_size=request.team_size
+        )
+        db.add(new_tenant)
+        db.commit()
+        
         return {
             "status": "success",
-            "tenant_id": f"tenant_{secrets.token_hex(8)}",
+            "tenant_id": tenant_id,
             "company_name": request.company_name
         }
 

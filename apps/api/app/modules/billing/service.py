@@ -7,6 +7,7 @@ from apps.api.app.modules.billing.schemas import (
     InvoiceSummary,
     CostService,
     APIKey,
+    APIKeyCreateRequest,
 )
 
 class APIKeyGenerator:
@@ -61,5 +62,17 @@ class BillingService:
             APIKey(name="Read Only Key", key=APIKeyGenerator.generate_key("ocp_ro_")[:18] + "••••••••", scopes="Read", created_at=now, status="Active"),
         ]
 
+    def create_api_key(self, org_id: str, request: APIKeyCreateRequest) -> APIKey:
+        """Mocks creating an API key."""
+        now = datetime.datetime.utcnow().strftime("%b %d, %Y")
+        full_key = APIKeyGenerator.generate_key("ocp_live_")
+        # In a real app we'd save this to DB securely, here we just return it so UI can show it once
+        return APIKey(
+            name=request.name,
+            key=full_key,
+            scopes=request.scopes,
+            created_at=now,
+            status="Active"
+        )
 
 billing_service = BillingService()

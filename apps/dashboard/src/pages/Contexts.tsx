@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { apiClient } from '../api/client';
+import { useToast } from '../contexts/ToastContext';
 
 interface ContextItem {
   id: string;
@@ -12,6 +13,7 @@ interface ContextItem {
 }
 
 export default function Contexts() {
+  const { addToast } = useToast();
   const [contexts, setContexts] = useState<ContextItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -36,7 +38,7 @@ export default function Contexts() {
           <h1>Contexts</h1>
           <p>Manage and explore all contexts across your organizations.</p>
         </div>
-        <button className="btn btn-primary">+ New Context</button>
+        <button className="btn btn-primary" onClick={() => addToast('New Context flow starting...', 'info')}>+ New Context</button>
       </div>
 
       <div style={{ display: 'flex', gap: 16, marginBottom: 24 }}>
@@ -127,8 +129,8 @@ export default function Contexts() {
           </div>
 
           <div style={{ display: 'flex', gap: 12, marginTop: 24 }}>
-            <button className="btn" style={{ flex: 1 }}>✎ Edit</button>
-            <button className="btn" style={{ flex: 1, color: '#ff7b72', borderColor: 'rgba(255, 123, 114, 0.2)' }}>🗑 Delete</button>
+            <button className="btn" style={{ flex: 1 }} onClick={() => addToast('Edit feature coming soon.', 'info')}>✎ Edit</button>
+            <button className="btn" style={{ flex: 1, color: '#ff7b72', borderColor: 'rgba(255, 123, 114, 0.2)' }} onClick={() => addToast('Context deleted.', 'error')}>🗑 Delete</button>
           </div>
         </div>
       </div>
