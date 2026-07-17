@@ -42,6 +42,18 @@ services:
     networks:
       - context-net
 
+  # 4. Postgres Database (for Relational Metadata/Auth)
+  postgres-service:
+    image: postgres:15-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=opencontext
+      - POSTGRES_DB=opencontext
+    networks:
+      - context-net
+
   # 4. Redis Cache (for Rate Limiting / Billing Metering)
   cache-service:
     image: redis:7-alpine

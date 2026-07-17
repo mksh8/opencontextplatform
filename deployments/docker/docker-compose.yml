@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  # OpenContextPlatform API
+  api:
+    build: 
+      context: ../../
+      dockerfile: deployments/docker/Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - ENVIRONMENT=development
+      - ARCADEDB_URL=http://arcadedb:2480
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      - arcadedb
+      - redis
+    volumes:
+      - ../../apps/api/app:/app/apps/api/app
+      - ../../packages:/app/packages
+
+  # ArcadeDB - Primary Multi-Modal Database
+  arcadedb:
+    image: arcadedata/arcadedb:latest
+    ports:
+      - "2480:2480"
+      - "2424:2424"
+    environment:
+      - JAVA_OPTS=-Darcadedb.server.rootPassword=playwithdata -Darcadedb.server.defaultDatabases=OpenContext[root]{import:file://databases/OpenContext.json}
+    volumes:
+      - arcadedb_data:/home/arcadedb/databases
+
+  # Redis - Caching and Rate Limiting
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+volumes:
+  arcadedb_data:
+  redis_data:

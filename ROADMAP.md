@@ -291,7 +291,7 @@ CLAUDE.md
 
 ## Phase 1 — Foundation
 
-**Status:** 🚧 In Progress
+**Status:** ✅ Complete
 
 ### Goals
 
@@ -308,6 +308,8 @@ CLAUDE.md
 
 ## Phase 2 — Context Runtime
 
+**Status:** 🚧 In Progress
+
 ### Deliverables
 
 * Context Runtime
@@ -323,6 +325,8 @@ CLAUDE.md
 
 ## Phase 3 — Provider SDK
 
+**Status:** 🚧 In Progress
+
 ### Deliverables
 
 * Provider SDK
@@ -336,6 +340,8 @@ CLAUDE.md
 ---
 
 ## Phase 4 — Connector SDK
+
+**Status:** ⏳ Backlog
 
 ### Deliverables
 
@@ -354,6 +360,8 @@ CLAUDE.md
 
 ## Phase 5 — Coding Context
 
+**Status:** ⏳ Backlog
+
 ### Deliverables
 
 * Repository Indexer
@@ -371,6 +379,8 @@ CLAUDE.md
 
 ## Phase 6 — Dashboard
 
+**Status:** 🚧 In Progress
+
 ### Deliverables
 
 * UI/UX Design System
@@ -386,6 +396,8 @@ CLAUDE.md
 
 ## Phase 7 — Cloud Platform
 
+**Status:** ⏳ Backlog
+
 ### Deliverables
 
 * Managed Runtime
@@ -398,6 +410,8 @@ CLAUDE.md
 ---
 
 ## Phase 8 — Enterprise
+
+**Status:** ⏳ Backlog
 
 ### Deliverables
 
@@ -414,6 +428,8 @@ CLAUDE.md
 
 ## Phase 9 — Marketplace
 
+**Status:** ⏳ Backlog
+
 ### Deliverables
 
 * Provider Marketplace
@@ -426,9 +442,11 @@ CLAUDE.md
 
 # Development Workflow
 
-Every feature follows the same lifecycle:
+Every feature follows the same lifecycle. **It is a strict rule that a GitHub Issue MUST be created before any implementation begins.**
 
 ```text
+GitHub Issue
+ ↓
 RFC
  ↓
 Architecture
@@ -507,15 +525,15 @@ Apache License 2.0
 | Component      | Status         |
 | -------------- | -------------- |
 | Vision         | ✅ Complete     |
-| Roadmap        | 🚧 In Progress |
-| Architecture   | 🚧 In Progress |
+| Roadmap        | ✅ Complete     |
+| Architecture   | ✅ Complete     |
 | Specifications | 🚧 In Progress |
-| Runtime        | ⏳ Planned      |
-| SDK            | ⏳ Planned      |
-| Connectors     | ⏳ Planned      |
-| Dashboard      | ⏳ Planned      |
-| Cloud          | ⏳ Planned      |
-| Enterprise     | ⏳ Planned      |
+| Runtime        | 🚧 In Progress |
+| SDK            | 🚧 In Progress |
+| Connectors     | ⏳ Backlog      |
+| Dashboard      | 🚧 In Progress |
+| Cloud          | ⏳ Backlog      |
+| Enterprise     | ⏳ Backlog      |
 
 ---
 

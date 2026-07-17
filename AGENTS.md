@@ -12,7 +12,9 @@ This document defines agent responsibilities for OpenContextPlatform. Agents are
 
 ## Architecture
 
-Agents collaborate through the required lifecycle: RFC, Architecture, Database Design, API Design, Sequence Diagram, Implementation, Unit Tests, Integration Tests, Documentation, Review, and Release.
+Agents collaborate through the required lifecycle: GitHub Issue Creation, RFC, Architecture, Database Design, API Design, Sequence Diagram, Implementation, Unit Tests, Integration Tests, Documentation, Review, and Release.
+
+**CRITICAL RULE:** No implementation or coding may begin until a formal GitHub Issue has been created, tagged, and assigned.
 
 ## Diagrams
 

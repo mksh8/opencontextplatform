@@ -1,6 +1,31 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import apiClient from '../api/client';
+
+interface Member {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  status: string;
+  last_active: string;
+}
 
 export default function Members() {
+  const [members, setMembers] = useState<Member[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // We hardcode org_id for now as we don't have global auth state yet
+    const orgId = "org_alpha_123";
+    
+    apiClient.get(`/organizations/${orgId}/members`)
+      .then(response => {
+        setMembers(response.data);
+      })
+      .catch(error => console.error("Error fetching members:", error))
+      .finally(() => setLoading(false));
+  }, []);
+
   return (
     <>
       <div className="page-header">
@@ -23,71 +48,40 @@ export default function Members() {
             </tr>
           </thead>
           <tbody>
-            <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
-              <td style={{ padding: '16px 24px', display: 'flex', gap: 12, alignItems: 'center' }}>
-                <img src="https://ui-avatars.com/api/?name=Mukesh+Kumar&background=10b981&color=fff" style={{ width: 32, height: 32, borderRadius: '50%' }} />
-                <div>
-                  <div style={{ fontWeight: 500, color: '#fff' }}>Mukesh Kumar</div>
-                  <div style={{ fontSize: 11, color: 'var(--text-secondary)' }}>mukesh@example.com</div>
-                </div>
-              </td>
-              <td style={{ padding: '16px 24px', color: 'var(--text-secondary)' }}>Owner</td>
-              <td style={{ padding: '16px 24px' }}><div className="status-indicator"><div className="dot"></div> Active</div></td>
-              <td style={{ padding: '16px 24px', color: 'var(--text-secondary)' }}>Just now</td>
-              <td style={{ padding: '16px 24px' }}>⋮</td>
-            </tr>
-            <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
-              <td style={{ padding: '16px 24px', display: 'flex', gap: 12, alignItems: 'center' }}>
-                <img src="https://ui-avatars.com/api/?name=Alice+Johnson&background=8b5cf6&color=fff" style={{ width: 32, height: 32, borderRadius: '50%' }} />
-                <div>
-                  <div style={{ fontWeight: 500, color: '#fff' }}>Alice Johnson</div>
-                  <div style={{ fontSize: 11, color: 'var(--text-secondary)' }}>alice@example.com</div>
-                </div>
-              </td>
-              <td style={{ padding: '16px 24px', color: 'var(--text-secondary)' }}>Admin</td>
-              <td style={{ padding: '16px 24px' }}><div className="status-indicator"><div className="dot"></div> Active</div></td>
-              <td style={{ padding: '16px 24px', color: 'var(--text-secondary)' }}>5m ago</td>
-              <td style={{ padding: '16px 24px' }}>⋮</td>
-            </tr>
-            <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
-              <td style={{ padding: '16px 24px', display: 'flex', gap: 12, alignItems: 'center' }}>
-                <img src="https://ui-avatars.com/api/?name=Bob+Smith&background=3b82f6&color=fff" style={{ width: 32, height: 32, borderRadius: '50%' }} />
-                <div>
-                  <div style={{ fontWeight: 500, color: '#fff' }}>Bob Smith</div>
-                  <div style={{ fontSize: 11, color: 'var(--text-secondary)' }}>bob@example.com</div>
-                </div>
-              </td>
-              <td style={{ padding: '16px 24px', color: 'var(--text-secondary)' }}>Member</td>
-              <td style={{ padding: '16px 24px' }}><div className="status-indicator"><div className="dot"></div> Active</div></td>
-              <td style={{ padding: '16px 24px', color: 'var(--text-secondary)' }}>1h ago</td>
-              <td style={{ padding: '16px 24px' }}>⋮</td>
-            </tr>
-            <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
-              <td style={{ padding: '16px 24px', display: 'flex', gap: 12, alignItems: 'center' }}>
-                <img src="https://ui-avatars.com/api/?name=Charlie+Brown&background=eab308&color=fff" style={{ width: 32, height: 32, borderRadius: '50%' }} />
-                <div>
-                  <div style={{ fontWeight: 500, color: '#fff' }}>Charlie Brown</div>
-                  <div style={{ fontSize: 11, color: 'var(--text-secondary)' }}>charlie@example.com</div>
-                </div>
-              </td>
-              <td style={{ padding: '16px 24px', color: 'var(--text-secondary)' }}>Member</td>
-              <td style={{ padding: '16px 24px' }}><div className="status-indicator"><div className="dot"></div> Active</div></td>
-              <td style={{ padding: '16px 24px', color: 'var(--text-secondary)' }}>2h ago</td>
-              <td style={{ padding: '16px 24px' }}>⋮</td>
-            </tr>
-            <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
-              <td style={{ padding: '16px 24px', display: 'flex', gap: 12, alignItems: 'center' }}>
-                <img src="https://ui-avatars.com/api/?name=Diana+Prince&background=ff7b72&color=fff" style={{ width: 32, height: 32, borderRadius: '50%' }} />
-                <div>
-                  <div style={{ fontWeight: 500, color: '#fff' }}>Diana Prince</div>
-                  <div style={{ fontSize: 11, color: 'var(--text-secondary)' }}>diana@example.com</div>
-                </div>
-              </td>
-              <td style={{ padding: '16px 24px', color: 'var(--text-secondary)' }}>Viewer</td>
-              <td style={{ padding: '16px 24px' }}><div className="status-indicator" style={{ color: 'var(--text-secondary)' }}><div className="dot" style={{ background: 'var(--text-secondary)' }}></div> Inactive</div></td>
-              <td style={{ padding: '16px 24px', color: 'var(--text-secondary)' }}>2d ago</td>
-              <td style={{ padding: '16px 24px' }}>⋮</td>
-            </tr>
+            {loading ? (
+              <tr>
+                <td colSpan={5} style={{ padding: '24px', textAlign: 'center', color: 'var(--text-secondary)' }}>
+                  Loading members...
+                </td>
+              </tr>
+            ) : members.length === 0 ? (
+              <tr>
+                <td colSpan={5} style={{ padding: '24px', textAlign: 'center', color: 'var(--text-secondary)' }}>
+                  No members found.
+                </td>
+              </tr>
+            ) : (
+              members.map(member => (
+                <tr key={member.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
+                  <td style={{ padding: '16px 24px', display: 'flex', gap: 12, alignItems: 'center' }}>
+                    <img src={`https://ui-avatars.com/api/?name=${encodeURIComponent(member.name)}&background=random&color=fff`} style={{ width: 32, height: 32, borderRadius: '50%' }} alt={member.name} />
+                    <div>
+                      <div style={{ fontWeight: 500, color: '#fff' }}>{member.name}</div>
+                      <div style={{ fontSize: 11, color: 'var(--text-secondary)' }}>{member.email}</div>
+                    </div>
+                  </td>
+                  <td style={{ padding: '16px 24px', color: 'var(--text-secondary)' }}>{member.role}</td>
+                  <td style={{ padding: '16px 24px' }}>
+                    <div className="status-indicator" style={{ color: member.status === 'Active' ? '#10b981' : 'var(--text-secondary)' }}>
+                      <div className="dot" style={{ background: member.status === 'Active' ? '#10b981' : 'var(--text-secondary)' }}></div> 
+                      {member.status}
+                    </div>
+                  </td>
+                  <td style={{ padding: '16px 24px', color: 'var(--text-secondary)' }}>{member.last_active}</td>
+                  <td style={{ padding: '16px 24px', cursor: 'pointer' }}>⋮</td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>

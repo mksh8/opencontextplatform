@@ -1,6 +1,30 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import apiClient from '../api/client';
+
+interface CollectionItem {
+  id: string;
+  icon: string;
+  title: string;
+  description: string;
+  tag: string;
+  tag_color: string;
+  tag_bg: string;
+  time_ago: string;
+}
 
 export default function Collections() {
+  const [collections, setCollections] = useState<CollectionItem[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const orgId = "org_alpha_123";
+    apiClient.get(`/collections/${orgId}`)
+      .then(response => {
+        setCollections(response.data);
+      })
+      .catch(error => console.error("Error fetching collections:", error))
+      .finally(() => setLoading(false));
+  }, []);
   return (
     <>
       <div className="page-header">
@@ -29,50 +53,28 @@ export default function Collections() {
 
         {/* Grid of Collection Cards */}
         <div style={{ flex: 1, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-          <div className="widget" style={{ padding: '20px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span style={{ fontSize: 20 }}>💬</span>
-                <h3 style={{ fontSize: 14, color: '#fff', fontWeight: 500 }}>User prefers detailed explanations</h3>
+          {loading ? (
+            <div style={{ color: 'var(--text-secondary)' }}>Loading collections...</div>
+          ) : collections.length === 0 ? (
+            <div style={{ color: 'var(--text-secondary)' }}>No collections found.</div>
+          ) : (
+            collections.map(col => (
+              <div className="widget" style={{ padding: '20px' }} key={col.id}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span style={{ fontSize: 20 }}>{col.icon}</span>
+                    <h3 style={{ fontSize: 14, color: '#fff', fontWeight: 500 }}>{col.title}</h3>
+                  </div>
+                  <span style={{ color: 'var(--text-secondary)', cursor: 'pointer' }}>⋮</span>
+                </div>
+                <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 16 }}>{col.description}</p>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 11, color: 'var(--text-secondary)' }}>
+                  <span className="tag" style={{ color: col.tag_color, background: col.tag_bg }}>{col.tag}</span>
+                  <span>{col.time_ago}</span>
+                </div>
               </div>
-              <span style={{ color: 'var(--text-secondary)' }}>⋮</span>
-            </div>
-            <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 16 }}>User mentioned they prefer comprehensive explanations with practical examples over brief answers.</p>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 11, color: 'var(--text-secondary)' }}>
-              <span className="tag" style={{ color: 'var(--accent-blue)', background: 'rgba(59, 130, 246, 0.1)' }}>Documentation</span>
-              <span>2 mins ago</span>
-            </div>
-          </div>
-
-          <div className="widget" style={{ padding: '20px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span style={{ fontSize: 20 }}>🛡️</span>
-                <h3 style={{ fontSize: 14, color: '#fff', fontWeight: 500 }}>API authentication implementation</h3>
-              </div>
-              <span style={{ color: 'var(--text-secondary)' }}>⋮</span>
-            </div>
-            <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 16 }}>Decided to use JWT tokens with refresh token rotation for better security.</p>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 11, color: 'var(--text-secondary)' }}>
-              <span className="tag" style={{ color: 'var(--accent-purple)', background: 'rgba(139, 92, 246, 0.1)' }}>Engineering</span>
-              <span>1h ago</span>
-            </div>
-          </div>
-          
-          <div className="widget" style={{ padding: '20px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span style={{ fontSize: 20 }}>🗄️</span>
-                <h3 style={{ fontSize: 14, color: '#fff', fontWeight: 500 }}>Discussion about vector database selection</h3>
-              </div>
-              <span style={{ color: 'var(--text-secondary)' }}>⋮</span>
-            </div>
-            <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 16 }}>Comparing LanceDB vs Pinecone vs Milvus for our specific use case.</p>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 11, color: 'var(--text-secondary)' }}>
-              <span className="tag" style={{ color: 'var(--accent-green)', background: 'rgba(16, 185, 129, 0.1)' }}>Architecture</span>
-              <span>3h ago</span>
-            </div>
-          </div>
+            ))
+          )}
 
         </div>
       </div>

@@ -1,0 +1,34 @@
+replicaCount: 3
+
+image:
+  repository: opencontextplatform/api
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: true
+  className: "nginx"
+  hosts:
+    - host: api.opencontext.local
+      paths:
+        - path: /
+          pathType: Prefix
+
+resources:
+  requests:
+    cpu: 500m
+    memory: 512Mi
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+
+# Redis dependency configuration
+redis:
+  enabled: true
+  architecture: standalone
+  auth:
+    enabled: false

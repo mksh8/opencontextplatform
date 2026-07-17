@@ -1,6 +1,15 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { apiClient } from '../api/client';
 
 export default function Dashboard() {
+  const [metrics, setMetrics] = useState<any>(null);
+
+  useEffect(() => {
+    apiClient.get('/metrics/billing')
+      .then(res => setMetrics(res.data))
+      .catch(err => console.error("Failed to load metrics", err));
+  }, []);
+  
   return (
     <>
       <div className="page-header">
@@ -21,15 +30,15 @@ export default function Dashboard() {
           <div className="kpi-icon" style={{ background: 'rgba(139, 92, 246, 0.1)', color: 'var(--accent-purple)' }}>📦</div>
           <div className="kpi-data">
             <h3>Total Contexts</h3>
-            <div className="value">128.4K <span className="trend-up">↑ 12.5%</span></div>
+            <div className="value">{metrics ? metrics.storage_used : '...'} <span className="trend-up">↑ 12.5%</span></div>
             <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginTop: 4 }}>vs Apr 12 - May 12</div>
           </div>
         </div>
         <div className="kpi-card">
           <div className="kpi-icon" style={{ background: 'rgba(59, 130, 246, 0.1)', color: 'var(--accent-blue)' }}>🗄️</div>
           <div className="kpi-data">
-            <h3>Total Memories</h3>
-            <div className="value">96.7K <span className="trend-up">↑ 8.3%</span></div>
+            <h3>Estimated Cost</h3>
+            <div className="value">{metrics ? metrics.estimated_cost : '...'} <span className="trend-up">↑ 8.3%</span></div>
             <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginTop: 4 }}>vs Apr 12 - May 12</div>
           </div>
         </div>
@@ -37,7 +46,7 @@ export default function Dashboard() {
           <div className="kpi-icon" style={{ background: 'rgba(16, 185, 129, 0.1)', color: 'var(--accent-green)' }}>◎</div>
           <div className="kpi-data">
             <h3>Total Tokens</h3>
-            <div className="value">2.45B <span className="trend-up">↑ 18.7%</span></div>
+            <div className="value">{metrics ? metrics.total_tokens : '...'} <span className="trend-up">↑ {metrics?.trends?.tokens || '...'}</span></div>
             <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginTop: 4 }}>vs Apr 12 - May 12</div>
           </div>
         </div>
@@ -45,7 +54,7 @@ export default function Dashboard() {
           <div className="kpi-icon" style={{ background: 'rgba(234, 179, 8, 0.1)', color: 'var(--accent-yellow)' }}>🔍</div>
           <div className="kpi-data">
             <h3>Total Queries</h3>
-            <div className="value">245.6K <span className="trend-up">↑ 15.2%</span></div>
+            <div className="value">{metrics ? metrics.total_queries : '...'} <span className="trend-up">↑ {metrics?.trends?.queries || '...'}</span></div>
             <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginTop: 4 }}>vs Apr 12 - May 12</div>
           </div>
         </div>
