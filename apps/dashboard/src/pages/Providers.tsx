@@ -15,18 +15,44 @@ export default function Providers() {
   const [activeTab, setActiveTab] = useState('LLM Providers');
   const [providers, setProviders] = useState<Provider[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showModal, setShowModal] = useState(false);
+  const [formData, setFormData] = useState({ name: '', provider_type: 'OpenAI', api_key: '' });
+  const [submitting, setSubmitting] = useState(false);
   const { addToast } = useToast();
   const tabs = ['LLM Providers', 'Embedding Providers', 'Vector Providers', 'Graph Providers', 'Storage Providers'];
+  const orgId = "org_alpha_123";
 
-  useEffect(() => {
-    const orgId = "org_alpha_123";
+  const fetchProviders = () => {
+    setLoading(true);
     apiClient.get(`/providers/${orgId}`)
       .then(response => {
         setProviders(response.data);
       })
       .catch(error => console.error("Error fetching providers:", error))
       .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    fetchProviders();
   }, []);
+
+  const handleAddProvider = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitting(true);
+    try {
+      await apiClient.post(`/providers/${orgId}`, formData);
+      addToast('Provider added successfully!', 'success');
+      setShowModal(false);
+      setFormData({ name: '', provider_type: 'OpenAI', api_key: '' });
+      fetchProviders();
+    } catch (error) {
+      console.error(error);
+      addToast('Failed to add provider', 'error');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   return (
     <>
       <div className="page-header">
@@ -34,7 +60,7 @@ export default function Providers() {
           <h1>Providers</h1>
           <p>Configure your AI and data providers.</p>
         </div>
-        <button className="btn btn-primary" onClick={() => addToast('Add Provider flow coming soon!', 'success')}>+ Add Provider</button>
+        <button className="btn btn-primary" onClick={() => setShowModal(true)}>+ Add Provider</button>
       </div>
 
       <div style={{ borderBottom: '1px solid var(--border-color)', display: 'flex', gap: 32, marginBottom: 24 }}>
@@ -107,6 +133,61 @@ export default function Providers() {
         <div className="widget" style={{ padding: 48, textAlign: 'center' }}>
           <p style={{ color: 'var(--text-secondary)' }}>The {activeTab} section is currently under development.</p>
           <button className="btn btn-primary" style={{ marginTop: 16 }} onClick={() => addToast(`Subscribed to ${activeTab} updates!`, 'success')}>Notify me when available</button>
+        </div>
+      )}
+
+      {/* Add Provider Modal */}
+      {showModal && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
+          <div className="widget" style={{ width: 450, padding: 24 }}>
+            <h3 style={{ marginTop: 0, marginBottom: 24, fontSize: 18, color: '#fff' }}>Add AI Provider</h3>
+            <form onSubmit={handleAddProvider}>
+              <div style={{ marginBottom: 16 }}>
+                <label style={{ display: 'block', marginBottom: 8, fontSize: 13, color: 'var(--text-secondary)' }}>Provider Type</label>
+                <select 
+                  style={{ width: '100%', padding: '10px 12px', background: 'var(--bg-input)', border: '1px solid var(--border-color)', borderRadius: 6, color: '#fff', fontSize: 14 }}
+                  value={formData.provider_type}
+                  onChange={e => setFormData({...formData, provider_type: e.target.value})}
+                  required
+                >
+                  <option value="OpenAI">OpenAI</option>
+                  <option value="Anthropic">Anthropic</option>
+                  <option value="Ollama">Ollama (Local)</option>
+                  <option value="Google">Google Gemini</option>
+                </select>
+              </div>
+              <div style={{ marginBottom: 16 }}>
+                <label style={{ display: 'block', marginBottom: 8, fontSize: 13, color: 'var(--text-secondary)' }}>Display Name</label>
+                <input 
+                  type="text" 
+                  placeholder="e.g. My OpenAI Account"
+                  style={{ width: '100%', padding: '10px 12px', background: 'var(--bg-input)', border: '1px solid var(--border-color)', borderRadius: 6, color: '#fff', fontSize: 14 }}
+                  value={formData.name}
+                  onChange={e => setFormData({...formData, name: e.target.value})}
+                  required
+                />
+              </div>
+              <div style={{ marginBottom: 24 }}>
+                <label style={{ display: 'block', marginBottom: 8, fontSize: 13, color: 'var(--text-secondary)' }}>API Key</label>
+                <input 
+                  type="password" 
+                  placeholder="sk-..."
+                  style={{ width: '100%', padding: '10px 12px', background: 'var(--bg-input)', border: '1px solid var(--border-color)', borderRadius: 6, color: '#fff', fontSize: 14 }}
+                  value={formData.api_key}
+                  onChange={e => setFormData({...formData, api_key: e.target.value})}
+                  required
+                />
+                <p style={{ fontSize: 11, color: 'var(--text-secondary)', marginTop: 8 }}>Your key is encrypted before being stored.</p>
+              </div>
+              
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12 }}>
+                <button type="button" className="btn" style={{ background: 'transparent', border: '1px solid var(--border-color)' }} onClick={() => setShowModal(false)}>Cancel</button>
+                <button type="submit" className="btn btn-primary" disabled={submitting}>
+                  {submitting ? 'Saving...' : 'Save Provider'}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
     </>

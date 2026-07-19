@@ -3,13 +3,14 @@ import datetime
 from typing import Optional, Dict, Any, List
 from packages.runtime.context import ContextObject
 from packages.provider_sdk.implementations import ArcadeDBProvider
+from packages.storage.arcadedb.operations import ArcadeDBRepository
 
 class MemoryEngine:
     """
     Handles CRUD operations for Semantic and Episodic memories.
     Persists data into the ArcadeDB knowledge graph and vector index.
     """
-    def __init__(self, db_provider: ArcadeDBProvider):
+    def __init__(self, db_provider: ArcadeDBRepository):
         self.db = db_provider
 
     def add_memory(

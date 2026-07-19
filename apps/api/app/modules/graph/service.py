@@ -1,22 +1,22 @@
 import uuid
 from typing import Dict, Any
 from apps.api.app.modules.graph.schemas import GraphData, GraphNode, GraphEdge
-from runtime.arcadedb_provider import ArcadeDBProvider
+from packages.storage.arcadedb.operations import db_repository, ArcadeDBRepository
 from packages.intelligence.code_parser import PythonASTParser
 
 class GraphService:
     def __init__(self):
         self.parser = PythonASTParser()
         
-    def get_explorer_graph(self, org_id: str, db: ArcadeDBProvider) -> GraphData:
+    def get_explorer_graph(self, org_id: str, db: ArcadeDBRepository) -> GraphData:
         """Fetches live graph data from ArcadeDB and calculates a simple layout."""
         
         # 1. Fetch all Nodes
         # For simplicity, we just fetch all FileNode, ClassNode, FunctionNodes. 
         # In production, we'd limit this or filter by tenant_id.
-        files = db.execute_command("sql", "SELECT * FROM FileNode LIMIT 50")
-        classes = db.execute_command("sql", "SELECT * FROM ClassNode LIMIT 100")
-        functions = db.execute_command("sql", "SELECT * FROM FunctionNode LIMIT 200")
+        files = db.graph.execute_command("sql", "SELECT * FROM FileNode LIMIT 50")
+        classes = db.graph.execute_command("sql", "SELECT * FROM ClassNode LIMIT 100")
+        functions = db.graph.execute_command("sql", "SELECT * FROM FunctionNode LIMIT 200")
         
         nodes: list[GraphNode] = []
         node_map = {}
@@ -60,8 +60,8 @@ class GraphService:
             add_node(fn["id"], fn["name"], "Function", "var(--accent-green)", 2, i, len(functions))
             
         # 2. Fetch Edges
-        # ArcadeDB edge format: SELECT @out.id AS source, @in.id AS target, @class AS label FROM E
-        edges_data = db.execute_command("sql", "SELECT @out.id AS source_id, @in.id AS target_id, @class AS label FROM CONTAINS LIMIT 500")
+        # Use Cypher to cleanly fetch edges without dealing with ArcadeDB SQL reserved keyword parsing for 'in'/'out'
+        edges_data = db.graph.execute_command("cypher", "MATCH (s)-[e:CONTAINS]->(t) RETURN s.id AS source_id, t.id AS target_id, 'CONTAINS' AS label LIMIT 500")
         
         edges: list[GraphEdge] = []
         for e in edges_data:
@@ -77,7 +77,7 @@ class GraphService:
                 
         return GraphData(nodes=nodes, edges=edges)
 
-    def index_file(self, file_name: str, source_code: str, db: ArcadeDBProvider) -> Dict[str, Any]:
+    def index_file(self, file_name: str, source_code: str, db: ArcadeDBRepository) -> Dict[str, Any]:
         """Parses the file and inserts the AST as a Graph in ArcadeDB."""
         ast_result = self.parser.parse_file(file_name, source_code)
         
@@ -86,7 +86,7 @@ class GraphService:
             
         # 1. Create FileNode
         file_id = f"file_{uuid.uuid4().hex[:8]}"
-        db.execute_command("sql", "INSERT INTO FileNode SET id = :id, name = :name", {
+        db.graph.execute_command("sql", "INSERT INTO FileNode SET id = :id, name = :name", {
             "id": file_id,
             "name": file_name
         })
@@ -97,7 +97,7 @@ class GraphService:
         # 2. Process Classes
         for cls in ast_result.get("classes", []):
             cls_id = f"cls_{uuid.uuid4().hex[:8]}"
-            db.execute_command("sql", "INSERT INTO ClassNode SET id = :id, name = :name, docstring = :doc", {
+            db.graph.execute_command("sql", "INSERT INTO ClassNode SET id = :id, name = :name, docstring = :doc", {
                 "id": cls_id,
                 "name": cls["name"],
                 "doc": cls["docstring"]
@@ -105,15 +105,13 @@ class GraphService:
             nodes_created += 1
             
             # File CONTAINS Class
-            db.execute_command("sql", "CREATE EDGE CONTAINS FROM (SELECT FROM FileNode WHERE id = :f_id) TO (SELECT FROM ClassNode WHERE id = :c_id)", {
-                "f_id": file_id, "c_id": cls_id
-            })
+            db.entity_edges.create_edge(file_id, cls_id, "CONTAINS")
             edges_created += 1
             
             # Process Methods
             for method in cls.get("methods", []):
                 m_id = f"fn_{uuid.uuid4().hex[:8]}"
-                db.execute_command("sql", "INSERT INTO FunctionNode SET id = :id, name = :name, docstring = :doc", {
+                db.graph.execute_command("sql", "INSERT INTO FunctionNode SET id = :id, name = :name, docstring = :doc", {
                     "id": m_id,
                     "name": method["name"],
                     "doc": method["docstring"]
@@ -121,15 +119,13 @@ class GraphService:
                 nodes_created += 1
                 
                 # Class CONTAINS Method
-                db.execute_command("sql", "CREATE EDGE CONTAINS FROM (SELECT FROM ClassNode WHERE id = :c_id) TO (SELECT FROM FunctionNode WHERE id = :m_id)", {
-                    "c_id": cls_id, "m_id": m_id
-                })
+                db.entity_edges.create_edge(cls_id, m_id, "CONTAINS")
                 edges_created += 1
                 
         # 3. Process Top-level Functions
         for func in ast_result.get("functions", []):
             f_id = f"fn_{uuid.uuid4().hex[:8]}"
-            db.execute_command("sql", "INSERT INTO FunctionNode SET id = :id, name = :name, docstring = :doc", {
+            db.graph.execute_command("sql", "INSERT INTO FunctionNode SET id = :id, name = :name, docstring = :doc", {
                 "id": f_id,
                 "name": func["name"],
                 "doc": func["docstring"]
@@ -137,9 +133,7 @@ class GraphService:
             nodes_created += 1
             
             # File CONTAINS Function
-            db.execute_command("sql", "CREATE EDGE CONTAINS FROM (SELECT FROM FileNode WHERE id = :file_id) TO (SELECT FROM FunctionNode WHERE id = :f_id)", {
-                "file_id": file_id, "f_id": f_id
-            })
+            db.entity_edges.create_edge(file_id, f_id, "CONTAINS")
             edges_created += 1
             
         return {
@@ -150,19 +144,26 @@ class GraphService:
             "ast": ast_result
         }
 
-    def get_context_subgraph(self, context_id: str, db: ArcadeDBProvider) -> GraphData:
+    def get_context_subgraph(self, context_id: str, db: ArcadeDBRepository) -> GraphData:
         """Fetches a subgraph for a specific ContextNode, including its Episodes and Facts."""
         import math
         
-        episodes = db.execute_command("sql", "SELECT * FROM Episode WHERE source = :ctx", {"ctx": context_id})
+        episodes = db.graph.execute_command("sql", "SELECT * FROM Episode WHERE source = :ctx", {"ctx": context_id})
         
         if not episodes:
             # Simulate background fact-extraction pipeline
-            ep_id = db.insert_episode({"source": context_id, "tenant_id": "demo"})
-            db.insert_fact({"id": f"f1_{uuid.uuid4().hex[:4]}", "content": f"Fact A from {context_id[:6]}"}, ep_id)
-            db.insert_fact({"id": f"f2_{uuid.uuid4().hex[:4]}", "content": f"Fact B from {context_id[:6]}"}, ep_id)
-            db.insert_fact({"id": f"f3_{uuid.uuid4().hex[:4]}", "content": f"Entity found in {context_id[:6]}"}, ep_id)
-            episodes = db.execute_command("sql", "SELECT * FROM Episode WHERE source = :ctx", {"ctx": context_id})
+            ep_id = db.episode_nodes.insert_episode({"source": context_id, "tenant_id": "demo"})
+            
+            fact1_id = db.entity_nodes.insert_fact({"id": f"f1_{uuid.uuid4().hex[:4]}", "content": f"Fact A from {context_id[:6]}"})
+            db.provenance_edges.link_fact_to_episode(fact1_id, ep_id)
+            
+            fact2_id = db.entity_nodes.insert_fact({"id": f"f2_{uuid.uuid4().hex[:4]}", "content": f"Fact B from {context_id[:6]}"})
+            db.provenance_edges.link_fact_to_episode(fact2_id, ep_id)
+            
+            fact3_id = db.entity_nodes.insert_fact({"id": f"f3_{uuid.uuid4().hex[:4]}", "content": f"Entity found in {context_id[:6]}"})
+            db.provenance_edges.link_fact_to_episode(fact3_id, ep_id)
+            
+            episodes = db.graph.execute_command("sql", "SELECT * FROM Episode WHERE source = :ctx", {"ctx": context_id})
             
         nodes: list[GraphNode] = []
         edges: list[GraphEdge] = []
@@ -181,12 +182,12 @@ class GraphService:
         edges.append(GraphEdge(source_id=ep_id_str, target_id=context_id, label="SOURCE_DOC"))
         
         # Get FactNodes linked to this Episode
-        edges_data = db.execute_command("sql", "SELECT out.id AS source_id, in.id AS target_id FROM HAS_PROVENANCE")
+        edges_data = db.graph.execute_command("cypher", "MATCH (s)-[e:HAS_PROVENANCE]->(t) RETURN s.id AS source_id, t.id AS target_id")
         fact_ids = [e.get("source_id") for e in edges_data if e.get("target_id") == ep_id_str]
         
         radius = 150
         for i, f_id in enumerate(fact_ids):
-            facts = db.execute_command("sql", "SELECT * FROM FactNode WHERE id = :fid", {"fid": f_id})
+            facts = db.graph.execute_command("sql", "SELECT * FROM FactNode WHERE id = :fid", {"fid": f_id})
             if facts:
                 content = facts[0].get("content", f"Fact {i}")
                 angle = (i / max(len(fact_ids), 1)) * 2 * math.pi

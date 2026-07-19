@@ -1,14 +1,13 @@
 from typing import List, Dict, Any
-from .arcadedb_provider import ArcadeDBProvider
+from packages.storage.arcadedb.operations import ArcadeDBRepository
 
 
 class RetrievalEngine:
     """
-    Retrieval and Ranking Engine for OpenContextPlatform.
-    Handles semantic, vector, and hybrid search queries.
+    Handles graph-based and vector-based context retrieval for grounding LLM prompts.
     """
 
-    def __init__(self, db_provider: ArcadeDBProvider):
+    def __init__(self, db_provider: ArcadeDBRepository):
         self.db = db_provider
 
     def search(

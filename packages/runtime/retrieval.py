@@ -1,11 +1,11 @@
 from typing import List, Dict, Any
-from packages.provider_sdk.implementations import ArcadeDBProvider
+from packages.storage.arcadedb.operations import ArcadeDBRepository
 
 class RetrievalEngine:
     """
     Executes hybrid search (Vector + Graph) against the database provider.
     """
-    def __init__(self, db_provider: ArcadeDBProvider):
+    def __init__(self, db_provider: ArcadeDBRepository):
         self.db = db_provider
 
     def hybrid_search(self, tenant_id: str, query_vector: List[float], query_string: str, top_k: int = 10) -> Dict[str, Any]:

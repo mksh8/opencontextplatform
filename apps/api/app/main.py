@@ -3,14 +3,20 @@ from fastapi.middleware.cors import CORSMiddleware
 from apps.api.app.core.config import settings
 from apps.api.app.api.v1.router import v1_router
 from runtime.db import engine, Base
+from runtime.init_db import init_database_schemas
+# Import models to ensure they are registered with Base
+import runtime.models 
 
 from apps.api.app.core.middleware import RateLimitMiddleware
 
 # Create tables if they don't exist
 try:
+    init_database_schemas(engine)
     Base.metadata.create_all(bind=engine)
+    from runtime.init_db import seed_super_tenant
+    seed_super_tenant(engine)
 except Exception as e:
-    print(f"Failed to create tables (might already exist or DB down): {e}")
+    print(f"Failed to create tables or seed super tenant (might already exist or DB down): {e}")
 
 app = FastAPI(
     title=settings.PROJECT_NAME,

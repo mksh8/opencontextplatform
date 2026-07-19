@@ -4,22 +4,18 @@ import sys
 # Add project root to path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from runtime.arcadedb_provider import ArcadeDBProvider
+from packages.storage.arcadedb.operations import db_repository
 
 def main():
     print("Initializing ArcadeDB OpenContext Schema...")
     
-    provider = ArcadeDBProvider(
-        host="localhost",
-        port=2480,
-        database="opencontext",
-        username="root",
-        password="opencontext" # from docker-compose
-    )
-    
-    if not provider.connect():
-        print("ERROR: Cannot connect to ArcadeDB. Is it running via docker-compose?")
+    print("Connecting to ArcadeDB...")
+    if not db_repository.graph.connect():
+        print("Failed to connect to ArcadeDB. Ensure it is running on localhost:2480")
         sys.exit(1)
+        
+    print("Creating OpenContext schema...")
+    db_repository.graph.create_schema()
         
     print("Connected successfully. Creating database if it doesn't exist...")
     try:

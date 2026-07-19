@@ -6,6 +6,7 @@ import Signup from './pages/Signup';
 import TenantOnboarding from './pages/TenantOnboarding';
 
 // New Dashboard Imports
+import Dashboard from './pages/Dashboard';
 import ExecutiveDashboard from './pages/dashboard/ExecutiveDashboard';
 import AIActivityDashboard from './pages/dashboard/AIActivityDashboard';
 import ContextHealth from './pages/dashboard/ContextHealth';
@@ -108,7 +109,8 @@ export default function App() {
 
         {/* Protected Routes */}
         <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
-          <Route index element={<Navigate to="/dashboard/executive" replace />} />
+          <Route index element={<Navigate to="/overview" replace />} />
+          <Route path="overview" element={<Dashboard />} />
           <Route path="dashboard/executive" element={<ExecutiveDashboard />} />
           <Route path="dashboard/ai-activity" element={<AIActivityDashboard />} />
           <Route path="dashboard/context-health" element={<ContextHealth />} />
@@ -174,7 +176,7 @@ export default function App() {
           <Route path="providers" element={<Providers />} />
           <Route path="settings" element={<Settings />} />
           <Route path="workspace" element={<Workspace />} />
-          <Route path="graphexplorer" element={<GraphExplorer />} />
+          <Route path="graph" element={<GraphExplorer />} />
           <Route path="sources" element={<Sources />} />
           <Route path="models" element={<Models />} />
           <Route path="apikeys" element={<APIKeys />} />

@@ -4,6 +4,7 @@ from typing import List
 from apps.api.app.modules.organizations.service import organization_service
 from apps.api.app.modules.organizations.schemas import (
     OrganizationResponse,
+    OrganizationCreateRequest,
     MemberResponse,
 )
 
@@ -11,8 +12,17 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/organizations", tags=["Organizations"])
 
+@router.post("", response_model=OrganizationResponse)
+def create_organization(request: OrganizationCreateRequest):
+    """Creates a new organization."""
+    try:
+        return organization_service.create_organization(request)
+    except Exception:
+        logger.exception("Failed to create organization")
+        raise HTTPException(status_code=500, detail="Internal Server Error")
 
-@router.get("/", response_model=List[OrganizationResponse])
+
+@router.get("", response_model=List[OrganizationResponse])
 def get_organizations():
     """Get all organizations the authenticated user belongs to."""
     try:

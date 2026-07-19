@@ -2,8 +2,10 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from typing import Dict, Any
+from sqlalchemy.orm import Session
+from runtime.db import SessionLocal
+from packages.storage.arcadedb.operations import db_repository
 
-from runtime.arcadedb_provider import ArcadeDBProvider
 from runtime.retrieval_engine import RetrievalEngine
 from runtime.memory_engine import MemoryEngine
 from packages.cloud.billing import StripeBillingProvider
@@ -20,23 +22,23 @@ ALGORITHM = "HS256"
 _cache = {}
 
 
-def get_arcadedb_provider() -> ArcadeDBProvider:
-    if "db" not in _cache:
-        provider = ArcadeDBProvider()
-        provider.connect()
-        _cache["db"] = provider
-    return _cache["db"]
+def get_arcadedb_repository():
+    # Attempt to connect to ensure singleton is ready
+    db_repository.graph.connect()
+    return db_repository
 
 
 def get_retrieval_engine() -> RetrievalEngine:
     if "retrieval" not in _cache:
-        _cache["retrieval"] = RetrievalEngine(get_arcadedb_provider())
+        db = get_arcadedb_repository()
+        _cache["retrieval"] = RetrievalEngine(db)
     return _cache["retrieval"]
 
 
 def get_memory_engine() -> MemoryEngine:
     if "memory" not in _cache:
-        _cache["memory"] = MemoryEngine(get_arcadedb_provider())
+        db = get_arcadedb_repository()
+        _cache["memory"] = MemoryEngine(db)
     return _cache["memory"]
 
 
@@ -65,7 +67,7 @@ def get_current_user(token: str = Depends(oauth2_scheme)) -> Dict[str, Any]:
             "sub": user_id,
             "email": email,
             "roles": roles,
-            "tenant_id": "tenant_1" # Hardcoded for demo
+            "tenant_id": "00000000-0000-0000-0000-000000000001" # Hardcoded valid UUID for demo
         }
     except JWTError:
         raise credentials_exception

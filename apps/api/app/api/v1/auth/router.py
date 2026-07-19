@@ -55,3 +55,16 @@ def get_current_user():
     except Exception:
         logger.exception("Failed to retrieve user profile")
         raise HTTPException(status_code=500, detail="Internal Server Error")
+
+from pydantic import BaseModel
+class SSOLoginRequest(BaseModel):
+    provider: str  # 'saml', 'oauth_azure', 'oauth_google'
+    tenant_id: str
+
+@router.post("/sso")
+def sso_login(request: SSOLoginRequest):
+    """Initiates an SSO login flow for enterprise tenants."""
+    from packages.enterprise.sso_provider import SSOManager
+    sso = SSOManager(provider=request.provider)
+    redirect_url = sso.get_authorization_url(request.tenant_id)
+    return {"redirect_url": redirect_url}

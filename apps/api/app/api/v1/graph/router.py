@@ -3,8 +3,8 @@ import logging
 from typing import Dict, Any
 from apps.api.app.modules.graph.service import graph_service
 from apps.api.app.modules.graph.schemas import GraphData, IndexCodeRequest
-from apps.api.app.api.dependencies import get_arcadedb_provider, require_permissions
-from runtime.arcadedb_provider import ArcadeDBProvider
+from apps.api.app.api.dependencies import get_arcadedb_repository, require_permissions
+from packages.storage.arcadedb.operations import ArcadeDBRepository
 from packages.enterprise.audit_logger import AuditLogger
 
 logger = logging.getLogger(__name__)
@@ -13,7 +13,7 @@ router = APIRouter(prefix="/graph", tags=["Graph"])
 
 
 @router.get("/{org_id}/explorer", response_model=GraphData)
-def get_explorer_graph(org_id: str, db: ArcadeDBProvider = Depends(get_arcadedb_provider)):
+def get_explorer_graph(org_id: str, db: ArcadeDBRepository = Depends(get_arcadedb_repository)):
     """Get graph topology for Graph Explorer."""
     try:
         return graph_service.get_explorer_graph(org_id, db)
@@ -22,7 +22,7 @@ def get_explorer_graph(org_id: str, db: ArcadeDBProvider = Depends(get_arcadedb_
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
 @router.get("/context/{context_id}", response_model=GraphData)
-def get_context_subgraph(context_id: str, db: ArcadeDBProvider = Depends(get_arcadedb_provider)):
+def get_context_subgraph(context_id: str, db: ArcadeDBRepository = Depends(get_arcadedb_repository)):
     """Get subgraph for a specific ContextNode."""
     try:
         return graph_service.get_context_subgraph(context_id, db)
@@ -33,7 +33,7 @@ def get_context_subgraph(context_id: str, db: ArcadeDBProvider = Depends(get_arc
 @router.post("/index-code", response_model=Dict[str, Any])
 def index_code(
     request: IndexCodeRequest, 
-    db: ArcadeDBProvider = Depends(get_arcadedb_provider),
+    db: ArcadeDBRepository = Depends(get_arcadedb_repository),
     user: Dict[str, Any] = Depends(require_permissions("write"))
 ):
     """Parses a Python file into an AST and stores the structured graph in ArcadeDB."""

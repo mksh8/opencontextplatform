@@ -1,5 +1,11 @@
 from pydantic import BaseModel
-from typing import List
+from typing import List, Optional
+
+
+class WorkspaceUsage(BaseModel):
+    name: str
+    percent: float
+    hue: Optional[str] = None
 
 
 class UsageMetrics(BaseModel):
@@ -11,6 +17,8 @@ class UsageMetrics(BaseModel):
     storage_trend: str
     estimated_cost: str
     cost_trend: str
+    # Optional per-workspace breakdown for UI consumption
+    workspaces: List[WorkspaceUsage] = []
 
 
 class CostService(BaseModel):

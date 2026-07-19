@@ -1,6 +1,29 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import apiClient from '../api/client';
+import { useToast } from '../contexts/ToastContext';
+
+interface AuditLog {
+  id: string;
+  actor: string;
+  action: string;
+  target: string;
+  status: string;
+  timestamp: string;
+  details?: any;
+}
 
 export default function AuditLogs() {
+  const [logs, setLogs] = useState<AuditLog[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { showToast } = useToast();
+
+  useEffect(() => {
+    apiClient.get('/auditlogs')
+      .then(res => setLogs(res.data))
+      .catch(() => showToast('Failed to fetch audit logs', 'error'))
+      .finally(() => setLoading(false));
+  }, []);
+
   return (
     <>
       <div className="page-header">
@@ -17,61 +40,33 @@ export default function AuditLogs() {
               <th style={{ padding: '16px 24px', fontWeight: 500 }}>User</th>
               <th style={{ padding: '16px 24px', fontWeight: 500 }}>Action</th>
               <th style={{ padding: '16px 24px', fontWeight: 500 }}>Resource</th>
-              <th style={{ padding: '16px 24px', fontWeight: 500 }}>IP Address</th>
+              <th style={{ padding: '16px 24px', fontWeight: 500 }}>Status</th>
               <th style={{ padding: '16px 24px', fontWeight: 500 }}>Time</th>
             </tr>
           </thead>
           <tbody>
-            <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
-              <td style={{ padding: '16px 24px', display: 'flex', gap: 8, alignItems: 'center' }}>
-                <img src="https://ui-avatars.com/api/?name=Mukesh+Kumar&background=10b981&color=fff" style={{ width: 24, height: 24, borderRadius: '50%' }} />
-                <span style={{ fontWeight: 500, color: '#fff' }}>Mukesh Kumar</span>
-              </td>
-              <td style={{ padding: '16px 24px', color: 'var(--text-secondary)' }}>Updated Context</td>
-              <td style={{ padding: '16px 24px', color: 'var(--text-secondary)' }}>Context #1234</td>
-              <td style={{ padding: '16px 24px', color: 'var(--text-secondary)' }}>192.168.1.1</td>
-              <td style={{ padding: '16px 24px', color: 'var(--text-secondary)' }}>2m ago</td>
-            </tr>
-            <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
-              <td style={{ padding: '16px 24px', display: 'flex', gap: 8, alignItems: 'center' }}>
-                <img src="https://ui-avatars.com/api/?name=Alice+Johnson&background=8b5cf6&color=fff" style={{ width: 24, height: 24, borderRadius: '50%' }} />
-                <span style={{ fontWeight: 500, color: '#fff' }}>Alice Johnson</span>
-              </td>
-              <td style={{ padding: '16px 24px', color: 'var(--text-secondary)' }}>Created Memory</td>
-              <td style={{ padding: '16px 24px', color: 'var(--text-secondary)' }}>Context #5678</td>
-              <td style={{ padding: '16px 24px', color: 'var(--text-secondary)' }}>192.168.1.2</td>
-              <td style={{ padding: '16px 24px', color: 'var(--text-secondary)' }}>5m ago</td>
-            </tr>
-            <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
-              <td style={{ padding: '16px 24px', display: 'flex', gap: 8, alignItems: 'center' }}>
-                <img src="https://ui-avatars.com/api/?name=Bob+Smith&background=3b82f6&color=fff" style={{ width: 24, height: 24, borderRadius: '50%' }} />
-                <span style={{ fontWeight: 500, color: '#fff' }}>Bob Smith</span>
-              </td>
-              <td style={{ padding: '16px 24px', color: 'var(--text-secondary)' }}>Deleted Context</td>
-              <td style={{ padding: '16px 24px', color: 'var(--text-secondary)' }}>Context #9012</td>
-              <td style={{ padding: '16px 24px', color: 'var(--text-secondary)' }}>192.168.1.3</td>
-              <td style={{ padding: '16px 24px', color: 'var(--text-secondary)' }}>15m ago</td>
-            </tr>
-            <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
-              <td style={{ padding: '16px 24px', display: 'flex', gap: 8, alignItems: 'center' }}>
-                <img src="https://ui-avatars.com/api/?name=Charlie+Brown&background=eab308&color=fff" style={{ width: 24, height: 24, borderRadius: '50%' }} />
-                <span style={{ fontWeight: 500, color: '#fff' }}>Charlie Brown</span>
-              </td>
-              <td style={{ padding: '16px 24px', color: 'var(--text-secondary)' }}>Added Member</td>
-              <td style={{ padding: '16px 24px', color: 'var(--text-secondary)' }}>Member #4321</td>
-              <td style={{ padding: '16px 24px', color: 'var(--text-secondary)' }}>192.168.1.4</td>
-              <td style={{ padding: '16px 24px', color: 'var(--text-secondary)' }}>1h ago</td>
-            </tr>
-            <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
-              <td style={{ padding: '16px 24px', display: 'flex', gap: 8, alignItems: 'center' }}>
-                <img src="https://ui-avatars.com/api/?name=Diana+Prince&background=ff7b72&color=fff" style={{ width: 24, height: 24, borderRadius: '50%' }} />
-                <span style={{ fontWeight: 500, color: '#fff' }}>Diana Prince</span>
-              </td>
-              <td style={{ padding: '16px 24px', color: 'var(--text-secondary)' }}>Changed Settings</td>
-              <td style={{ padding: '16px 24px', color: 'var(--text-secondary)' }}>Settings</td>
-              <td style={{ padding: '16px 24px', color: 'var(--text-secondary)' }}>192.168.1.5</td>
-              <td style={{ padding: '16px 24px', color: 'var(--text-secondary)' }}>2h ago</td>
-            </tr>
+            {loading ? (
+              <tr>
+                <td colSpan={5} style={{ padding: '24px', textAlign: 'center', color: 'var(--text-secondary)' }}>Loading...</td>
+              </tr>
+            ) : logs.length === 0 ? (
+              <tr>
+                <td colSpan={5} style={{ padding: '24px', textAlign: 'center', color: 'var(--text-secondary)' }}>No audit logs found.</td>
+              </tr>
+            ) : (
+              logs.map(log => (
+                <tr key={log.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
+                  <td style={{ padding: '16px 24px', display: 'flex', gap: 8, alignItems: 'center' }}>
+                    <img src={`https://ui-avatars.com/api/?name=${encodeURIComponent(log.actor)}&background=random&color=fff`} style={{ width: 24, height: 24, borderRadius: '50%' }} />
+                    <span style={{ fontWeight: 500, color: '#fff' }}>{log.actor}</span>
+                  </td>
+                  <td style={{ padding: '16px 24px', color: 'var(--text-secondary)' }}>{log.action}</td>
+                  <td style={{ padding: '16px 24px', color: 'var(--text-secondary)' }}>{log.target}</td>
+                  <td style={{ padding: '16px 24px', color: log.status === 'success' || log.status === 'allow' ? '#10b981' : '#ef4444' }}>{log.status}</td>
+                  <td style={{ padding: '16px 24px', color: 'var(--text-secondary)' }}>{new Date(log.timestamp).toLocaleString()}</td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>

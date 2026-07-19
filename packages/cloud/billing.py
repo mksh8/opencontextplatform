@@ -1,4 +1,6 @@
 from abc import ABC, abstractmethod
+from runtime.db import SessionLocal
+from runtime.models import BillingEvent
 
 
 class IBillingProvider(ABC):
@@ -15,12 +17,28 @@ class StripeBillingProvider(IBillingProvider):
 
     def report_usage(self, tenant_id: str, metric: str, quantity: int) -> bool:
         """
-        Pushes a metered event to Stripe (Mocked).
+        Pushes a metered event to Stripe and logs it in the local database.
         Metric examples: 'context_nodes_ingested', 'llm_tokens'.
         """
         # Stripe API Mock: POST /v1/billing/meter_events
-        print(f"[Stripe] Reported {quantity} units of {metric} for {tenant_id}")
-        return True
+        print(f"[Stripe Mock] Reported {quantity} units of {metric} for {tenant_id}")
+        
+        try:
+            import uuid
+            db = SessionLocal()
+            event = BillingEvent(
+                id=f"evt_{uuid.uuid4().hex[:12]}",
+                tenant_id=tenant_id,
+                metric=metric,
+                quantity=quantity
+            )
+            db.add(event)
+            db.commit()
+            db.close()
+            return True
+        except Exception as e:
+            print(f"[Billing Error] Failed to record billing event: {e}")
+            return False
 
     def get_billing_metrics(self) -> dict:
         """
