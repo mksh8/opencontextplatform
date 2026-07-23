@@ -1,17 +1,18 @@
+"""Alembic environment configuration."""
+
+import os
+import sys
 from logging.config import fileConfig
 
-from sqlalchemy import engine_from_config
-from sqlalchemy import pool
-
 from alembic import context
-import sys
-import os
+import sqlalchemy as sa
+from sqlalchemy import engine_from_config, pool
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # Import our models
-from runtime.models import Base
 from runtime.db import DATABASE_URL
+from runtime.models import Base
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -69,18 +70,19 @@ def run_migrations_online() -> None:
     )
 
     with connectable.connect() as connection:
-        import sqlalchemy as sa
-        schemas = ["identity", "workspace", "datasource", "connector", "provider", 
-                   "catalog", "governance", "quality", "search", "ai", "agent", 
-                   "workflow", "context", "memory", "mcp", "lineage", "ontology", 
-                   "monitoring", "notification", "billing", "marketplace", "plugin", 
-                   "sdk", "system", "scheduler", "secrets", "common"]
+        schemas = [
+            "identity", "workspace", "datasource", "connector", "provider",
+            "catalog", "governance", "quality", "search", "ai", "agent",
+            "workflow", "context", "memory", "mcp", "lineage", "ontology",
+            "monitoring", "notification", "billing", "marketplace", "plugin",
+            "sdk", "system", "scheduler", "secrets", "common"
+        ]
         for schema in schemas:
             connection.execute(sa.text(f"CREATE SCHEMA IF NOT EXISTS {schema}"))
         connection.commit()
-        
+
         context.configure(
-            connection=connection, 
+            connection=connection,
             target_metadata=target_metadata,
             include_schemas=True,
         )

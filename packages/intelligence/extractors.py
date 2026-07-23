@@ -1,4 +1,7 @@
-from typing import Dict, Any, List
+"""Entity and relation extraction modules for OCP Intelligence."""
+
+from typing import Any, Dict, List
+
 from packages.provider_sdk.interfaces import ILLMProvider
 
 
@@ -9,7 +12,7 @@ class LocalNLPExtractor:
     """
 
     def extract_entities(self, text: str) -> List[Dict[str, str]]:
-        # Stub logic
+        """Extract entities from raw text using local heuristics."""
         if not text:
             return []
         if "user" in text.lower():
@@ -37,6 +40,7 @@ class LLMExtractor:
         self.llm = llm_provider
 
     def extract_relations(self, text: str) -> List[Dict[str, str]]:
+        """Extract relationships between entities using LLM."""
         # In reality, this would send a prompt to the LLM
         self.llm.generate_text(f"Extract relations from: {text}", {})
         # Stub logic

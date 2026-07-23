@@ -1,11 +1,15 @@
+"""SSO Provider implementations for enterprise single sign-on."""
+
 from abc import ABC, abstractmethod
-from typing import Dict, Any
+from typing import Any, Dict
 
 
 class ISSOProvider(ABC):
+    """Interface for enterprise SSO providers."""
+
     @abstractmethod
     def verify_token(self, token: str) -> Dict[str, Any]:
-        pass
+        """Verify SSO token and return user identity claims."""
 
 
 class Auth0Provider(ISSOProvider):
@@ -40,6 +44,17 @@ class OktaProvider(ISSOProvider):
                 "sub": "okta_user_456",
                 "email": "dev@enterprise.com",
                 "roles": ["contributor"],
-                "groups": ["engineering", "beta_testers"]
+                "groups": ["engineering", "beta_testers"],
             }
         raise ValueError("Invalid Token")
+
+
+class SSOManager:
+    """Manager for generating SSO authorization URLs and delegating authentication."""
+
+    def __init__(self, provider: str = "saml"):
+        self.provider = provider
+
+    def get_authorization_url(self, tenant_id: str) -> str:
+        """Get redirect authorization URL for given tenant ID."""
+        return f"https://sso.opencontext.io/auth/{self.provider}?tenant_id={tenant_id}"

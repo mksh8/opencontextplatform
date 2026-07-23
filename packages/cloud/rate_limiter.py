@@ -1,3 +1,5 @@
+"""Rate limiter component for tenant API throttling."""
+
 from packages.provider_sdk.interfaces import ICacheProvider
 
 

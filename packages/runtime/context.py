@@ -1,4 +1,6 @@
-from typing import Dict, Any, Optional
+"""ContextObject data class for runtime context representations."""
+
+from typing import Any, Dict, Optional
 
 
 class ContextObject:
@@ -9,14 +11,14 @@ class ContextObject:
 
     def __init__(
         self,
-        id: str,
+        id: str,  # pylint: disable=redefined-builtin
         tenant_id: str,
         provider: Optional[str] = None,
-        type: Optional[str] = None,
+        type: Optional[str] = None,  # pylint: disable=redefined-builtin
         content: Optional[str] = None,
         metadata: Optional[Dict[str, Any]] = None,
         timestamp: Optional[str] = None,
-    ):
+    ):  # pylint: disable=too-many-arguments,too-many-positional-arguments
         self.id = id
         self.tenant_id = tenant_id
         self.provider = provider
@@ -26,6 +28,7 @@ class ContextObject:
         self.timestamp = timestamp
 
     def to_dict(self) -> Dict[str, Any]:
+        """Convert ContextObject attributes to a dictionary."""
         return {
             "id": self.id,
             "tenant_id": self.tenant_id,
@@ -38,6 +41,7 @@ class ContextObject:
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]):
+        """Construct ContextObject from a dictionary."""
         return cls(
             id=data.get("id"),
             tenant_id=data.get("tenant_id"),

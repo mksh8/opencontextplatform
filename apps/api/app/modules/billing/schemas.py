@@ -1,14 +1,19 @@
-from pydantic import BaseModel
+"""Billing Pydantic schemas."""
+
 from typing import List, Optional
+
+from pydantic import BaseModel
 
 
 class WorkspaceUsage(BaseModel):
+    """Workspace usage breakdown schema."""
     name: str
     percent: float
     hue: Optional[str] = None
 
 
 class UsageMetrics(BaseModel):
+    """Metrics payload for usage breakdown."""
     total_tokens: str
     tokens_trend: str
     total_queries: str
@@ -22,6 +27,7 @@ class UsageMetrics(BaseModel):
 
 
 class CostService(BaseModel):
+    """Cost details breakdown for a service."""
     name: str
     cost: str
     percentage: str
@@ -29,16 +35,20 @@ class CostService(BaseModel):
 
 
 class InvoiceSummary(BaseModel):
+    """Summary schema for invoice services."""
     services: List[CostService]
 
 
 class APIKey(BaseModel):
+    """Legacy API Key schema for billing."""
     name: str
     key: str
     scopes: str
     created_at: str
     status: str
 
+
 class APIKeyCreateRequest(BaseModel):
+    """Legacy API key create request schema."""
     name: str
     scopes: str

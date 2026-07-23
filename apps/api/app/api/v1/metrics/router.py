@@ -1,8 +1,12 @@
-from fastapi import APIRouter, Depends, HTTPException
+"""Metrics router endpoints."""
+
 import logging
-from apps.api.app.modules.metrics.service import metrics_service
-from apps.api.app.modules.metrics.schemas import MetricsResponse
+
+from fastapi import APIRouter, Depends, HTTPException
+
 from apps.api.app.api.dependencies import get_billing_provider
+from apps.api.app.modules.metrics.schemas import MetricsResponse
+from apps.api.app.modules.metrics.service import metrics_service
 from packages.cloud.billing import StripeBillingProvider
 
 logger = logging.getLogger(__name__)
@@ -17,6 +21,6 @@ def get_billing_metrics(
     """Endpoint returning billing metrics, delegated to service."""
     try:
         return metrics_service.get_billing_metrics(provider)
-    except Exception:
+    except Exception as exc:
         logger.exception("Failed to retrieve metrics")
-        raise HTTPException(status_code=500, detail="Internal Server Error")
+        raise HTTPException(status_code=500, detail="Internal Server Error") from exc

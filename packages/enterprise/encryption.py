@@ -1,15 +1,20 @@
-import os
+"""KMS Engine for encryption and decryption of sensitive data at rest."""
+
 import base64
-from cryptography.fernet import Fernet
 import logging
+import os
+
+from cryptography.fernet import Fernet
 
 logger = logging.getLogger(__name__)
+
 
 class KMSEngine:
     """
     Mock KMS Engine using symmetric Fernet encryption for data-at-rest.
     In a real environment, this would integrate with AWS KMS, HashiCorp Vault, etc.
     """
+
     def __init__(self):
         # Read from environment or generate a stable default for demo purposes
         key = os.environ.get("OCP_KMS_MASTER_KEY")
@@ -19,21 +24,24 @@ class KMSEngine:
         self.fernet = Fernet(key)
 
     def encrypt(self, plain_text: str) -> str:
+        """Encrypt plain text string into cipher text."""
         if not plain_text:
             return plain_text
         try:
             return self.fernet.encrypt(plain_text.encode()).decode()
         except Exception as e:
-            logger.error(f"Failed to encrypt data: {e}")
+            logger.error("Failed to encrypt data: %s", e)
             raise
 
     def decrypt(self, cipher_text: str) -> str:
+        """Decrypt cipher text string into plain text."""
         if not cipher_text:
             return cipher_text
         try:
             return self.fernet.decrypt(cipher_text.encode()).decode()
         except Exception as e:
-            logger.error(f"Failed to decrypt data: {e}")
+            logger.error("Failed to decrypt data: %s", e)
             raise
+
 
 kms_engine = KMSEngine()

@@ -1,12 +1,15 @@
-from .interfaces import IConnector
-from .implementations import (
+"""Factory module for instantiating data ingestion connectors."""
+
+from packages.connector_sdk.filesystem import FilesystemConnector
+from packages.connector_sdk.implementations import (
     GitHubConnector,
-    SlackConnector,
-    NotionConnector,
     MCPConnector,
+    NotionConnector,
     RESTAPIConnector,
+    SlackConnector,
 )
-from .filesystem import FilesystemConnector
+from packages.connector_sdk.interfaces import IConnector
+
 
 class ConnectorFactory:
     """
@@ -15,6 +18,7 @@ class ConnectorFactory:
 
     @staticmethod
     def get_connector(name: str) -> IConnector:
+        """Instantiate and return connector by name."""
         connectors = {
             "github": GitHubConnector,
             "slack": SlackConnector,

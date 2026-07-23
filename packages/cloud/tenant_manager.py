@@ -1,3 +1,5 @@
+"""Tenant manager component for authentication and tenant isolation."""
+
 from typing import Dict
 
 

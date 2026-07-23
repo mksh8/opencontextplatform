@@ -1,8 +1,10 @@
+"""Collections Pydantic schemas."""
+
 from pydantic import BaseModel
-from typing import List
 
 
 class CollectionItem(BaseModel):
+    """Collection item schema."""
     id: str
     icon: str
     title: str

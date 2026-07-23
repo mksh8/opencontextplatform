@@ -1,18 +1,23 @@
-import uuid
+"""Users router endpoints."""
+
 import datetime
 import logging
+from typing import List
+import uuid
+
 import bcrypt
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel, EmailStr
-from typing import List, Optional
+from pydantic import BaseModel
+
 from runtime.db import SessionLocal
-from runtime.models.identity import User, Role, RoleAssignment
+from runtime.models.identity import Role, RoleAssignment, User
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/users", tags=["Users"])
 
 
 class PlatformUserResponse(BaseModel):
+    """Response model for platform user data."""
     id: str
     name: str
     email: str
@@ -23,9 +28,15 @@ class PlatformUserResponse(BaseModel):
 
 
 class InviteUserRequest(BaseModel):
+    """Request model for inviting a new platform user."""
     email: str
     full_name: str
     role_name: str = "Platform Operator"
+
+
+class UserStatusRequest(BaseModel):
+    """Request model for updating user status."""
+    status: str
 
 
 @router.get("", response_model=List[PlatformUserResponse])
@@ -59,7 +70,7 @@ def list_platform_users():
         return result
     except Exception as e:
         logger.exception("Failed to list platform users")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
     finally:
         db.close()
 
@@ -72,7 +83,9 @@ def invite_platform_user(request: InviteUserRequest):
         # Check if user already exists
         existing = db.query(User).filter(User.email == request.email).first()
         if existing:
-            raise HTTPException(status_code=409, detail=f"User with email {request.email} already exists")
+            raise HTTPException(
+                status_code=409, detail=f"User with email {request.email} already exists"
+            )
 
         # Find requested role
         role = db.query(Role).filter(Role.name == request.role_name).first()
@@ -102,7 +115,7 @@ def invite_platform_user(request: InviteUserRequest):
         db.add(assignment)
         db.commit()
 
-        logger.info(f"Invited platform user: {request.email} with role {request.role_name}")
+        logger.info("Invited platform user: %s with role %s", request.email, request.role_name)
         return PlatformUserResponse(
             id=str(user.id),
             name=user.full_name,
@@ -117,13 +130,9 @@ def invite_platform_user(request: InviteUserRequest):
     except Exception as e:
         db.rollback()
         logger.exception("Failed to invite platform user")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
     finally:
         db.close()
-
-
-class UserStatusRequest(BaseModel):
-    status: str
 
 
 @router.put("/{user_id}/status")
@@ -142,6 +151,6 @@ def update_user_status(user_id: str, request: UserStatusRequest):
     except Exception as e:
         db.rollback()
         logger.exception("Failed to update user status")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
     finally:
         db.close()

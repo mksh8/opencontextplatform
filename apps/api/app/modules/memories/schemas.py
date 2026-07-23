@@ -1,7 +1,10 @@
+"""Memories Pydantic schemas."""
+
 from pydantic import BaseModel
-from typing import List
+
 
 class MemoryNode(BaseModel):
+    """Memory node schema."""
     id: str
     content: str
     type: str

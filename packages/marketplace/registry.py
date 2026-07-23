@@ -1,7 +1,10 @@
-import os
-import json
+"""Plugin registry for discovering and dynamically loading marketplace plugins."""
+
 import importlib.util
-from typing import Dict, Any, Optional
+import json
+import os
+from typing import Any, Dict, Optional
+
 from packages.marketplace.manifest import PluginManifest
 
 
@@ -13,6 +16,7 @@ class PluginRegistry:
         self.active_plugins: Dict[str, Any] = {}
 
     def discover_and_load(self) -> None:
+        """Discover and load all valid plugins in plugin directory."""
         if not os.path.exists(self.plugin_dir):
             return
 
@@ -24,7 +28,8 @@ class PluginRegistry:
                     self._load_plugin(folder_path, manifest_path)
 
     def _load_plugin(self, folder_path: str, manifest_path: str) -> None:
-        with open(manifest_path, "r") as f:
+        """Load individual plugin from manifest file."""
+        with open(manifest_path, "r", encoding="utf-8") as f:
             data = json.load(f)
 
         manifest = PluginManifest(data)
@@ -50,6 +55,7 @@ class PluginRegistry:
                 print(f"[Registry] Successfully loaded plugin: {manifest.name}")
 
     def get_plugin(self, name: str) -> Optional[Any]:
+        """Retrieve plugin instance by name."""
         plugin_data = self.active_plugins.get(name)
         if plugin_data:
             return plugin_data["instance"]

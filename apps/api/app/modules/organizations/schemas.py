@@ -1,8 +1,12 @@
-from pydantic import BaseModel, Field
+"""Organizations Pydantic schemas."""
+
 from typing import List, Optional
+
+from pydantic import BaseModel, Field
 
 
 class OrganizationCreateRequest(BaseModel):
+    """Organization registration payload schema."""
     name: str = Field(..., min_length=1)
     plan: Optional[str] = "Enterprise"
     display_name: Optional[str] = None
@@ -14,12 +18,14 @@ class OrganizationCreateRequest(BaseModel):
 
 
 class Workspace(BaseModel):
+    """Workspace metadata schema."""
     id: str
     name: str
     role: str
 
 
 class OrganizationResponse(BaseModel):
+    """Organization metadata response schema."""
     id: str
     name: str
     slug: str
@@ -36,6 +42,7 @@ class OrganizationResponse(BaseModel):
 
 
 class MemberResponse(BaseModel):
+    """Organization member schema."""
     id: str
     name: str
     email: str
@@ -43,12 +50,16 @@ class MemberResponse(BaseModel):
     status: str
     last_active: str
 
+
 class TenantResponse(BaseModel):
+    """Tenant summary schema."""
     id: str
     name: str
     code: str
     status: str
     created_at: str
-    
+
+
 class StatusUpdateRequest(BaseModel):
+    """Status update payload schema."""
     status: str

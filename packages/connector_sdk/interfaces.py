@@ -1,5 +1,7 @@
+"""Interfaces for Connector SDK integrations."""
+
 from abc import ABC, abstractmethod
-from typing import Dict, Any, List
+from typing import Any, Dict, List
 
 
 class IConnector(ABC):
@@ -14,11 +16,9 @@ class IConnector(ABC):
         Poll the external service for data and return a list of normalized
         ContextObjects.
         """
-        pass
 
     @abstractmethod
     def handle_webhook(self, payload: Dict[str, Any]) -> List[Dict[str, Any]]:
         """
         Process an incoming webhook payload and return normalized ContextObjects.
         """
-        pass

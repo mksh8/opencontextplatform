@@ -1,6 +1,9 @@
-from typing import Dict, Any
+"""Episodic memory manager module for context object versioning."""
+
+from typing import Any, Dict, Union
 import uuid
-from typing import Union
+
+from packages.runtime.context import ContextObject
 
 
 class EpisodicMemoryManager:
@@ -64,11 +67,8 @@ class EpisodicMemoryManager:
         # Apply versioning metadata
         new_version = self.apply_update(current, {})
 
-        # Return as ContextObject
         try:
-            from packages.runtime.context import ContextObject
-
             return ContextObject.from_dict(new_version)
-        except Exception:
-            # If import fails for any reason, return the dict
+        except Exception:  # pylint: disable=broad-exception-caught
+            # If conversion fails for any reason, return the dict
             return new_version

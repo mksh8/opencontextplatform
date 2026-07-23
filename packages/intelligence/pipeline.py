@@ -1,6 +1,9 @@
-from typing import Dict, Any
-from .extractors import LocalNLPExtractor, LLMExtractor
-from .memory import EpisodicMemoryManager
+"""Intelligence pipeline orchestrator for extraction and episodic memory."""
+
+from typing import Any, Dict
+
+from packages.intelligence.extractors import LLMExtractor, LocalNLPExtractor
+from packages.intelligence.memory import EpisodicMemoryManager
 from packages.provider_sdk.factory import ProviderFactory
 
 

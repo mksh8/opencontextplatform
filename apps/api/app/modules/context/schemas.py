@@ -1,8 +1,12 @@
-from pydantic import BaseModel
+"""Context Pydantic schemas."""
+
 from typing import List
+
+from pydantic import BaseModel
 
 
 class ContextItem(BaseModel):
+    """Context summary item schema."""
     id: str
     title: str
     type: str
@@ -13,20 +17,27 @@ class ContextItem(BaseModel):
 
 
 class ContextResponse(BaseModel):
+    """Context list response wrapper."""
     data: List[ContextItem]
     total: int
     page: int
 
+
 class ContextCreateRequest(BaseModel):
+    """Context creation request payload schema."""
     title: str
     type: str
     source: str
     content: str
 
+
 class ContextUpdateRequest(BaseModel):
+    """Context update request payload schema."""
     content: str
 
+
 class ContextDetailResponse(BaseModel):
+    """Detailed view response for single context."""
     id: str
     title: str
     type: str
@@ -36,7 +47,9 @@ class ContextDetailResponse(BaseModel):
     content: str
     created_at: str
 
+
 class ContextMetadataBulkRequest(BaseModel):
+    """Bulk metadata application request schema."""
     context_ids: List[str]
     apply_to_all: bool = False
     key: str

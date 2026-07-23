@@ -1,16 +1,20 @@
-from typing import Dict, Any, List
-from .interfaces import IConnector
+"""Connector implementations for GitHub, Slack, Notion, MCP, and REST APIs."""
+
+from typing import Any, Dict, List
+import uuid
+
+from packages.connector_sdk.interfaces import IConnector
 
 
 class GitHubConnector(IConnector):
+    """Connector for syncing GitHub repositories, PRs, and issues."""
+
     def sync(self, config: Dict[str, Any]) -> List[Dict[str, Any]]:
-        import uuid
+        """Sync GitHub repo data into graph node representations."""
         repo_name = config.get("repository", "mksh8/opencontextplatform")
         repo_id = f"repo_{uuid.uuid4().hex[:8]}"
-        
-        # We'll return structured graph-like objects. The ConnectorService will parse them.
+
         nodes = []
-        
         nodes.append({
             "type": "RepositoryNode",
             "id": repo_id,
@@ -18,7 +22,7 @@ class GitHubConnector(IConnector):
             "url": f"https://github.com/{repo_name}",
             "description": "Main repository for the platform"
         })
-        
+
         # Create a sample PR
         pr_id = f"pr_{uuid.uuid4().hex[:8]}"
         nodes.append({
@@ -29,7 +33,7 @@ class GitHubConnector(IConnector):
             "state": "merged",
             "edge_to": {"label": "BELONGS_TO", "target": repo_id}
         })
-        
+
         # Create a sample Issue
         issue_id = f"issue_{uuid.uuid4().hex[:8]}"
         nodes.append({
@@ -40,10 +44,11 @@ class GitHubConnector(IConnector):
             "state": "open",
             "edge_to": {"label": "BELONGS_TO", "target": repo_id}
         })
-        
+
         return nodes
 
     def handle_webhook(self, payload: Dict[str, Any]) -> List[Dict[str, Any]]:
+        """Handle incoming GitHub webhook event."""
         action = payload.get("action", "unknown")
         issue = payload.get("issue", {})
         return [{
@@ -55,25 +60,27 @@ class GitHubConnector(IConnector):
 
 
 class SlackConnector(IConnector):
+    """Connector for syncing Slack channels and messages."""
+
     def sync(self, config: Dict[str, Any]) -> List[Dict[str, Any]]:
-        import uuid
+        """Sync Slack channel messages into graph node representations."""
         channel = config.get("channel", "engineering-chat")
         channel_id = f"chan_{uuid.uuid4().hex[:8]}"
-        
+
         nodes = []
         nodes.append({
             "type": "ChannelNode",
             "id": channel_id,
             "name": channel
         })
-        
+
         user_id = f"user_{uuid.uuid4().hex[:8]}"
         nodes.append({
             "type": "UserNode",
             "id": user_id,
             "name": "Alex Developer"
         })
-        
+
         msg_id = f"msg_{uuid.uuid4().hex[:8]}"
         nodes.append({
             "type": "MessageNode",
@@ -85,10 +92,11 @@ class SlackConnector(IConnector):
                 {"label": "AUTHORED_BY", "target": user_id}
             ]
         })
-        
+
         return nodes
 
     def handle_webhook(self, payload: Dict[str, Any]) -> List[Dict[str, Any]]:
+        """Handle incoming Slack event payload."""
         event = payload.get("event", {})
         return [
             {
@@ -101,13 +109,15 @@ class SlackConnector(IConnector):
 
 
 class NotionConnector(IConnector):
+    """Connector for syncing Notion workspace documents."""
+
     def sync(self, config: Dict[str, Any]) -> List[Dict[str, Any]]:
-        import uuid
+        """Sync Notion document hierarchy into graph node representations."""
         workspace = config.get("workspace", "engineering")
-        
+
         root_id = f"doc_{uuid.uuid4().hex[:8]}"
         child_id = f"doc_{uuid.uuid4().hex[:8]}"
-        
+
         nodes = [
             {
                 "type": "DocumentNode",
@@ -126,6 +136,7 @@ class NotionConnector(IConnector):
         return nodes
 
     def handle_webhook(self, payload: Dict[str, Any]) -> List[Dict[str, Any]]:
+        """Handle incoming Notion page update webhook."""
         return [{
             "id": f"notion-update-{payload.get('id', 'new')}",
             "type": "notion_page_update",
@@ -135,16 +146,24 @@ class NotionConnector(IConnector):
 
 
 class MCPConnector(IConnector):
-    def sync(self, config: Dict[str, Any]) -> List[Dict[str, Any]]:
+    """Connector for Model Context Protocol resources."""
+
+    def sync(self, _config: Dict[str, Any]) -> List[Dict[str, Any]]:
+        """Sync MCP resources."""
         return [{"id": "mcp-res-1", "type": "mcp_resource", "content": "Local file"}]
 
-    def handle_webhook(self, payload: Dict[str, Any]) -> List[Dict[str, Any]]:
+    def handle_webhook(self, _payload: Dict[str, Any]) -> List[Dict[str, Any]]:
+        """Handle incoming MCP webhook payload (noop)."""
         return []
 
 
 class RESTAPIConnector(IConnector):
-    def sync(self, config: Dict[str, Any]) -> List[Dict[str, Any]]:
+    """Connector for generic REST API endpoints."""
+
+    def sync(self, _config: Dict[str, Any]) -> List[Dict[str, Any]]:
+        """Sync data from REST API."""
         return [{"id": "api-1", "type": "api_response", "content": "JSON data"}]
 
     def handle_webhook(self, payload: Dict[str, Any]) -> List[Dict[str, Any]]:
+        """Handle incoming generic REST API webhook payload."""
         return [{"id": "webhook-1", "type": "api_webhook", "content": str(payload)}]
