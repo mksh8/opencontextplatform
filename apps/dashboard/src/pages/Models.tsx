@@ -1,10 +1,40 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import apiClient from '../api/client';
 import { useToast } from '../contexts/ToastContext';
+
+interface ModelItem {
+  id: string;
+  name: string;
+  provider: string;
+  type: string;
+  status: string;
+  last_used: string;
+}
 
 export default function Models() {
   const [activeTab, setActiveTab] = useState('LLM Models');
+  const [models, setModels] = useState<ModelItem[]>([]);
+  const [loading, setLoading] = useState(true);
   const { addToast } = useToast();
   const tabs = ['LLM Models', 'Embedding Models', 'Vector Models'];
+  const orgId = "org_alpha_123";
+
+  useEffect(() => {
+    setLoading(true);
+    apiClient.get(`/models/${orgId}`)
+      .then(response => {
+        setModels(response.data.models || []);
+      })
+      .catch(error => console.error("Error fetching models:", error))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const filteredModels = models.filter(m => {
+    if (activeTab === 'LLM Models') return m.type === 'LLM';
+    if (activeTab === 'Embedding Models') return m.type === 'Embedding';
+    return false; // Vector Models empty for now
+  });
+
   return (
     <>
       <div className="page-header">
@@ -33,7 +63,7 @@ export default function Models() {
         ))}
       </div>
 
-      {activeTab === 'LLM Models' ? (
+      {activeTab === 'LLM Models' || activeTab === 'Embedding Models' ? (
         <div className="widget" style={{ padding: 0, overflow: 'hidden' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: 13 }}>
           <thead>
@@ -47,38 +77,35 @@ export default function Models() {
             </tr>
           </thead>
           <tbody>
-            <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
-              <td style={{ padding: '16px 24px', color: '#fff', fontWeight: 500 }}>gpt-4o</td>
-              <td style={{ padding: '16px 24px', color: 'var(--text-secondary)' }}>OpenAI</td>
-              <td style={{ padding: '16px 24px', color: 'var(--text-secondary)' }}>LLM</td>
-              <td style={{ padding: '16px 24px' }}><div className="status-indicator"><div className="dot"></div> Active</div></td>
-              <td style={{ padding: '16px 24px', color: 'var(--text-secondary)' }}>2m ago</td>
-              <td style={{ padding: '16px 24px' }}>⋮</td>
-            </tr>
-            <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
-              <td style={{ padding: '16px 24px', color: '#fff', fontWeight: 500 }}>claude-3.5-sonnet</td>
-              <td style={{ padding: '16px 24px', color: 'var(--text-secondary)' }}>Anthropic</td>
-              <td style={{ padding: '16px 24px', color: 'var(--text-secondary)' }}>LLM</td>
-              <td style={{ padding: '16px 24px' }}><div className="status-indicator"><div className="dot"></div> Active</div></td>
-              <td style={{ padding: '16px 24px', color: 'var(--text-secondary)' }}>5m ago</td>
-              <td style={{ padding: '16px 24px' }}>⋮</td>
-            </tr>
-            <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
-              <td style={{ padding: '16px 24px', color: '#fff', fontWeight: 500 }}>gemini-1.5-pro</td>
-              <td style={{ padding: '16px 24px', color: 'var(--text-secondary)' }}>Google</td>
-              <td style={{ padding: '16px 24px', color: 'var(--text-secondary)' }}>LLM</td>
-              <td style={{ padding: '16px 24px' }}><div className="status-indicator"><div className="dot"></div> Active</div></td>
-              <td style={{ padding: '16px 24px', color: 'var(--text-secondary)' }}>15m ago</td>
-              <td style={{ padding: '16px 24px' }}>⋮</td>
-            </tr>
-            <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
-              <td style={{ padding: '16px 24px', color: '#fff', fontWeight: 500 }}>llama-3-70b</td>
-              <td style={{ padding: '16px 24px', color: 'var(--text-secondary)' }}>Ollama</td>
-              <td style={{ padding: '16px 24px', color: 'var(--text-secondary)' }}>LLM</td>
-              <td style={{ padding: '16px 24px' }}><div className="status-indicator" style={{ color: 'var(--text-secondary)' }}><div className="dot" style={{ background: 'var(--text-secondary)' }}></div> Inactive</div></td>
-              <td style={{ padding: '16px 24px', color: 'var(--text-secondary)' }}>2d ago</td>
-              <td style={{ padding: '16px 24px' }}>⋮</td>
-            </tr>
+            {loading ? (
+              <tr>
+                <td colSpan={6} style={{ padding: '24px', textAlign: 'center', color: 'var(--text-secondary)' }}>
+                  Loading models...
+                </td>
+              </tr>
+            ) : filteredModels.length === 0 ? (
+              <tr>
+                <td colSpan={6} style={{ padding: '24px', textAlign: 'center', color: 'var(--text-secondary)' }}>
+                  No {activeTab.toLowerCase()} found. Try adding a provider first.
+                </td>
+              </tr>
+            ) : (
+              filteredModels.map(model => (
+                <tr key={model.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
+                  <td style={{ padding: '16px 24px', color: '#fff', fontWeight: 500 }}>{model.name}</td>
+                  <td style={{ padding: '16px 24px', color: 'var(--text-secondary)' }}>{model.provider}</td>
+                  <td style={{ padding: '16px 24px', color: 'var(--text-secondary)' }}>{model.type}</td>
+                  <td style={{ padding: '16px 24px' }}>
+                    <div className="status-indicator" style={{ color: model.status === 'Active' ? '#10b981' : 'var(--text-secondary)' }}>
+                      <div className="dot" style={{ background: model.status === 'Active' ? '#10b981' : 'var(--text-secondary)' }}></div> 
+                      {model.status}
+                    </div>
+                  </td>
+                  <td style={{ padding: '16px 24px', color: 'var(--text-secondary)' }}>{model.last_used}</td>
+                  <td style={{ padding: '16px 24px', cursor: 'pointer' }}>⋮</td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>

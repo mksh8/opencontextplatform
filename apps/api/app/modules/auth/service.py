@@ -10,7 +10,7 @@ from apps.api.app.modules.auth.schemas import (
     TokenResponse
 )
 from sqlalchemy.orm import Session
-from runtime.models import User, Tenant
+from runtime.models import User, Tenant, Organization, RoleAssignment, Role
 
 SECRET_KEY = "super_secret_opencontext_key_for_jwt" # In production, load from env
 ALGORITHM = "HS256"
@@ -48,13 +48,22 @@ class AuthService:
         except ValueError:
             raise ValueError("Invalid credentials")
 
-        token = self._create_access_token(data={"sub": user_record.email, "id": user_record.id})
+        # Get primary role for UI
+        role_assignment = db.query(RoleAssignment).filter(RoleAssignment.user_id == user_record.id).first()
+        role_name = None
+        if role_assignment:
+            role_record = db.query(Role).filter(Role.id == role_assignment.role_id).first()
+            if role_record:
+                role_name = role_record.name
+
+        token = self._create_access_token(data={"sub": user_record.email, "id": str(user_record.id)})
         
         user_profile = UserProfile(
-            id=user_record.id,
+            id=str(user_record.id),
             email=user_record.email,
             full_name=user_record.full_name or "User",
-            avatar_url=f"https://ui-avatars.com/api/?name={(user_record.full_name or 'User').replace(' ', '+')}&background=random"
+            avatar_url=f"https://ui-avatars.com/api/?name={(user_record.full_name or 'User').replace(' ', '+')}&background=random",
+            role_name=role_name
         )
         return TokenResponse(access_token=token, user=user_profile)
 
@@ -65,11 +74,32 @@ class AuthService:
         if existing:
             raise ValueError("Email already registered")
             
-        user_id = f"usr_{uuid.uuid4().hex[:8]}"
+        org_id = uuid.uuid4()
+        tenant_id = uuid.uuid4()
+        user_id = uuid.uuid4()
+        
+        # Create default organization for the user
+        org = Organization(
+            id=org_id,
+            code=f"org_{org_id.hex[:8]}",
+            name=f"{request.full_name}'s Org"
+        )
+        db.add(org)
+        
+        # Create default tenant
+        tenant = Tenant(
+            id=tenant_id,
+            organization_id=org_id,
+            code=f"tenant_{tenant_id.hex[:8]}",
+            name="Default Tenant"
+        )
+        db.add(tenant)
+        
         hashed_password = bcrypt.hashpw(request.password[:72].encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
         
         new_user = User(
             id=user_id,
+            tenant_id=tenant_id,
             email=request.email,
             password_hash=hashed_password,
             full_name=request.full_name
@@ -77,10 +107,10 @@ class AuthService:
         db.add(new_user)
         db.commit()
         
-        token = self._create_access_token(data={"sub": request.email, "id": user_id})
+        token = self._create_access_token(data={"sub": request.email, "id": str(user_id)})
         
         user_profile = UserProfile(
-            id=user_id,
+            id=str(user_id),
             email=request.email,
             full_name=request.full_name,
             avatar_url=f"https://ui-avatars.com/api/?name={request.full_name.replace(' ', '+')}&background=random"
@@ -88,21 +118,31 @@ class AuthService:
         return TokenResponse(access_token=token, user=user_profile)
 
     def onboard_tenant(self, request: TenantCreateRequest, db: Session) -> dict:
-        """Provisions a new tenant in PostgreSQL."""
-        tenant_id = f"tenant_{uuid.uuid4().hex[:8]}"
+        """Provisions a new organization and tenant in PostgreSQL."""
+        org_id = uuid.uuid4()
+        tenant_id = uuid.uuid4()
+        
+        org = Organization(
+            id=org_id,
+            code=f"org_{org_id.hex[:8]}",
+            name=request.company_name,
+            industry=request.industry
+        )
+        db.add(org)
         
         new_tenant = Tenant(
             id=tenant_id,
-            company_name=request.company_name,
-            industry=request.industry,
-            team_size=request.team_size
+            organization_id=org_id,
+            code=f"tenant_{tenant_id.hex[:8]}",
+            name=request.company_name,
+            metadata_json={"team_size": request.team_size}
         )
         db.add(new_tenant)
         db.commit()
         
         return {
             "status": "success",
-            "tenant_id": tenant_id,
+            "tenant_id": str(tenant_id),
             "company_name": request.company_name
         }
 

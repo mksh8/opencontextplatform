@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import apiClient from '../api/client';
+import ForceGraph2D from 'react-force-graph-2d';
 
 interface GraphNode {
   id: string;
@@ -22,17 +23,63 @@ interface GraphData {
 }
 
 export default function GraphExplorer() {
-  const [graphData, setGraphData] = useState<GraphData | null>(null);
+  const [graphData, setGraphData] = useState<any>({ nodes: [], links: [] });
   const [loading, setLoading] = useState(true);
+  const [dimensions, setDimensions] = useState({ width: 800, height: 600 });
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const orgId = "org_alpha_123";
     apiClient.get(`/graph/${orgId}/explorer`)
       .then(response => {
-        setGraphData(response.data);
+        const d = response.data;
+        // Map source_id/target_id to source/target for ForceGraph
+        const links = d.edges.map((e: any) => ({
+          source: e.source_id,
+          target: e.target_id,
+          label: e.label
+        }));
+        setGraphData({ nodes: d.nodes, links });
       })
       .catch(error => console.error("Error fetching graph data:", error))
       .finally(() => setLoading(false));
+  }, []);
+
+  useEffect(() => {
+    if (containerRef.current) {
+      setDimensions({
+        width: containerRef.current.clientWidth,
+        height: containerRef.current.clientHeight
+      });
+    }
+    const handleResize = () => {
+      if (containerRef.current) {
+        setDimensions({
+          width: containerRef.current.clientWidth,
+          height: containerRef.current.clientHeight
+        });
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const paintNode = useCallback((node: any, ctx: CanvasRenderingContext2D, globalScale: number) => {
+    const label = node.label;
+    const fontSize = 12 / globalScale;
+    ctx.font = `${fontSize}px Sans-Serif`;
+    const textWidth = ctx.measureText(label).width;
+    const bckgDimensions = [textWidth, fontSize].map(n => n + fontSize * 0.2); 
+
+    ctx.fillStyle = node.color || 'var(--accent-purple)';
+    ctx.beginPath();
+    ctx.arc(node.x, node.y, 5, 0, 2 * Math.PI, false);
+    ctx.fill();
+
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#fff';
+    ctx.fillText(label, node.x, node.y + 10);
   }, []);
   return (
     <>
@@ -83,51 +130,24 @@ export default function GraphExplorer() {
         </div>
 
         {/* Center Graph Area */}
-        <div className="widget" style={{ flex: 1, padding: 0, position: 'relative', overflow: 'auto', display: 'flex' }}>
-          <svg width="2000" height="1000" viewBox="-500 -200 2000 1000" style={{ minWidth: 2000, minHeight: 1000 }}>
-            {loading ? (
-              <text x="300" y="200" fill="var(--text-secondary)" fontSize="14" textAnchor="middle">Loading graph...</text>
-            ) : !graphData || graphData.nodes.length === 0 ? (
-              <text x="300" y="200" fill="var(--text-secondary)" fontSize="14" textAnchor="middle">No graph data. Try indexing a file!</text>
-            ) : (
-              <>
-                {/* Edges */}
-                {graphData.edges.map((edge, idx) => {
-                  const source = graphData.nodes.find(n => n.id === edge.source_id);
-                  const target = graphData.nodes.find(n => n.id === edge.target_id);
-                  if (!source || !target) return null;
-                  
-                  return (
-                    <g key={`edge-${idx}`}>
-                      <line x1={source.x} y1={source.y} x2={target.x} y2={target.y} stroke="var(--border-color)" strokeWidth="2" />
-                      <text x={(source.x + target.x) / 2} y={((source.y + target.y) / 2) - 5} fill="var(--text-secondary)" fontSize="9" textAnchor="middle">{edge.label}</text>
-                    </g>
-                  );
-                })}
-
-                {/* Nodes */}
-                {graphData.nodes.map((node) => {
-                  const isFile = node.type === 'File';
-                  
-                  if (isFile) {
-                    return (
-                      <g key={node.id}>
-                        <circle cx={node.x} cy={node.y} r="40" fill={node.color} />
-                        <text x={node.x} y={node.y + 50} fill="#fff" fontSize="12" textAnchor="middle" fontWeight="600">{node.label}</text>
-                      </g>
-                    );
-                  } else {
-                    return (
-                      <g key={node.id}>
-                        <rect x={node.x - 60} y={node.y - 20} width="120" height="40" rx="20" fill="var(--bg-panel)" stroke={node.color} strokeWidth="2" />
-                        <text x={node.x} y={node.y + 4} fill="var(--text-primary)" fontSize="10" textAnchor="middle">{node.label}</text>
-                      </g>
-                    );
-                  }
-                })}
-              </>
-            )}
-          </svg>
+        <div className="widget" style={{ flex: 1, padding: 0, position: 'relative', overflow: 'hidden', display: 'flex' }} ref={containerRef}>
+          {loading ? (
+            <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', color: 'var(--text-secondary)' }}>Loading graph...</div>
+          ) : !graphData || graphData.nodes.length === 0 ? (
+            <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', color: 'var(--text-secondary)' }}>No graph data. Try indexing a file!</div>
+          ) : (
+            <ForceGraph2D
+              width={dimensions.width}
+              height={dimensions.height}
+              graphData={graphData}
+              nodeCanvasObject={paintNode}
+              linkColor={() => 'rgba(255,255,255,0.2)'}
+              backgroundColor="#0d1117"
+              linkDirectionalArrowLength={3.5}
+              linkDirectionalArrowRelPos={1}
+              nodeRelSize={6}
+            />
+          )}
         </div>
 
         {/* Right Sidebar: Entity Details */}

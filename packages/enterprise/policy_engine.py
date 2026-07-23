@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from typing import Dict, Any
 from packages.enterprise.rbac import RBACEngine
 from packages.enterprise.audit_logger import AuditLogger
+from runtime.db import SessionLocal
 
 
 class IPolicyEngine(ABC):
@@ -24,18 +25,23 @@ class LocalACLEngine(IPolicyEngine):
         roles = identity.get("roles", [])
         actor_id = identity.get("sub", "unknown_user")
         target_id = context_obj.get("id", "unknown_context")
+        tenant_id = identity.get("tenant_id")
         
         # Check base RBAC
-        if not self.rbac.has_permission(roles, action):
-            AuditLogger.log_event("access_evaluate", actor_id, target_id, "deny", {"reason": "Insufficient RBAC Roles"})
-            return False
+        db = SessionLocal()
+        try:
+            if not self.rbac.has_permission(roles, action, tenant_id, db):
+                AuditLogger.log_event("access_evaluate", actor_id, target_id, "deny", {"reason": "Insufficient RBAC Roles"}, tenant_id)
+                return False
+        finally:
+            db.close()
 
         # Check tenant isolation
         if identity.get("tenant_id") != context_obj.get("tenant_id"):
-            AuditLogger.log_event("access_evaluate", actor_id, target_id, "deny", {"reason": "Tenant Isolation Violation"})
+            AuditLogger.log_event("access_evaluate", actor_id, target_id, "deny", {"reason": "Tenant Isolation Violation"}, tenant_id)
             return False
 
-        AuditLogger.log_event("access_evaluate", actor_id, target_id, "allow", {"reason": "Local ACL Passed"})
+        AuditLogger.log_event("access_evaluate", actor_id, target_id, "allow", {"reason": "Local ACL Passed"}, tenant_id)
         return True
 
 

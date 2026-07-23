@@ -35,3 +35,9 @@ class ContextDetailResponse(BaseModel):
     tokens: str
     content: str
     created_at: str
+
+class ContextMetadataBulkRequest(BaseModel):
+    context_ids: List[str]
+    apply_to_all: bool = False
+    key: str
+    value: str

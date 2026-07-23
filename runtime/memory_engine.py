@@ -1,15 +1,13 @@
 from typing import Dict, Any
-from .arcadedb_provider import ArcadeDBProvider
+from packages.storage.arcadedb.operations import ArcadeDBRepository
 
 
 class MemoryEngine:
     """
-    Memory Engine for OpenContextPlatform.
-    Persists and manages session, episodic, and semantic memory using the unified
-    database.
+    Manages episodic and semantic memory insertion, clustering, and summarization.
     """
 
-    def __init__(self, db_provider: ArcadeDBProvider):
+    def __init__(self, db_provider: ArcadeDBRepository):
         self.db = db_provider
 
     def save_memory(self, context_obj: Dict[str, Any]) -> str:
@@ -25,21 +23,37 @@ class MemoryEngine:
         ):
             raise ValueError("ContextObject missing required identity fields")
 
-        record_id = self.db.insert_context_node(context_obj)
-        return record_id
+        # Insert using graph operations directly
+        import json
+        metadata_str = json.dumps(context_obj.get("metadata", {}))
+        
+        self.db.graph.execute_command(
+            "sql",
+            "INSERT INTO ContextNode SET id = :id, tenant_id = :tenant_id, type = :type, provider = :provider, content = :content, metadata_json = :metadata_json",
+            {
+                "id": context_obj["id"],
+                "tenant_id": context_obj["tenant_id"],
+                "type": context_obj["type"],
+                "provider": context_obj.get("provider", "Unknown"),
+                "content": context_obj.get("content", ""),
+                "metadata_json": metadata_str
+            }
+        )
+        return context_obj["id"]
 
     def get_all_contexts(self) -> dict:
         """
         Retrieves all context objects from ArcadeDB.
         """
         # Execute query against ArcadeDB
-        results = self.db.execute_command("sql", "SELECT * FROM ContextNode ORDER BY @rid DESC LIMIT 50")
+        results = self.db.graph.execute_command("sql", "SELECT * FROM ContextNode ORDER BY @rid DESC LIMIT 50")
         
         # If ArcadeDB returns nothing or isn't connected, we fallback to an empty list
         # We can map the returned ArcadeDB Document properties to our frontend schema
         mapped_data = []
         for row in results:
             import json
+            import uuid
             metadata = {}
             if "metadata_json" in row and row["metadata_json"]:
                 try:
@@ -48,7 +62,7 @@ class MemoryEngine:
                     pass
                     
             mapped_data.append({
-                "id": str(row.get("id") or "unknown_id"),
+                "id": str(row.get("id") or f"unknown_{uuid.uuid4().hex[:8]}"),
                 "title": str(metadata.get("title") or row.get("id") or "Untitled"),
                 "type": str(row.get("type") or "Document"),
                 "source": str(row.get("provider") or "Unknown"),

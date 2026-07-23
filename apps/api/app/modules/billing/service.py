@@ -30,6 +30,15 @@ class BillingService:
     def get_usage(self, org_id: str) -> UsageMetrics:
         """Returns mock usage metrics enriched by simulated Stripe metering."""
         stripe_data = self._fetch_stripe_usage(org_id)
+        # Provide a mock per-workspace breakdown to support dashboard UI.
+        workspaces = [
+            {"name": "Default Workspace", "percent": 45.2, "hue": "var(--accent-purple)"},
+            {"name": "Engineering", "percent": 24.6, "hue": "var(--accent-blue)"},
+            {"name": "Research", "percent": 15.8, "hue": "var(--accent-green)"},
+            {"name": "Product", "percent": 9.7, "hue": "var(--accent-yellow)"},
+            {"name": "Marketing", "percent": 4.7, "hue": "#fb7185"},
+        ]
+
         return UsageMetrics(
             total_tokens=stripe_data["tokens"],
             tokens_trend="↑ 18.7%",
@@ -39,6 +48,7 @@ class BillingService:
             storage_trend="↑ 5.2%",
             estimated_cost="$245.60",
             cost_trend="↑ 1.2%",
+            workspaces=workspaces,
         )
 
     def get_invoices(self, org_id: str) -> InvoiceSummary:

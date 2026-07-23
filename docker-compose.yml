@@ -2,33 +2,33 @@ version: '3.8'
 
 services:
   # 1. FastAPI Backend
-  api-service:
-    build: 
-      context: .
-      dockerfile: Dockerfile
-    ports:
-      - "8000:8000"
-    environment:
-      - ARCADEDB_URL=http://db-service:2480
-      - REDIS_URL=redis://cache-service:6379
-      - ENVIRONMENT=production
-    depends_on:
-      - db-service
-      - cache-service
-    networks:
-      - context-net
+  # api-service:
+  #   build: 
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   ports:
+  #     - "8000:8000"
+  #   environment:
+  #     - ARCADEDB_URL=http://db-service:2480
+  #     - REDIS_URL=redis://cache-service:6379
+  #     - ENVIRONMENT=production
+  #   depends_on:
+  #     - db-service
+  #     - cache-service
+  #   networks:
+  #     - context-net
 
   # 2. React Dashboard Frontend
-  dashboard-service:
-    build:
-      context: ./apps/dashboard
-      dockerfile: Dockerfile
-    ports:
-      - "8080:80"
-    depends_on:
-      - api-service
-    networks:
-      - context-net
+  # dashboard-service:
+  #   build:
+  #     context: ./apps/dashboard
+  #     dockerfile: Dockerfile
+  #   ports:
+  #     - "8080:80"
+  #   depends_on:
+  #     - api-service
+  #   networks:
+  #     - context-net
 
   # 3. ArcadeDB Context Engine (Unified Graph/Vector/Relational DB)
   db-service:

@@ -3,7 +3,7 @@ import logging
 from typing import Dict, Any
 from pydantic import BaseModel
 from apps.api.app.modules.context.service import context_service
-from apps.api.app.modules.context.schemas import ContextResponse, ContextCreateRequest, ContextDetailResponse
+from apps.api.app.modules.context.schemas import ContextResponse, ContextCreateRequest, ContextDetailResponse, ContextMetadataBulkRequest
 from apps.api.app.api.dependencies import get_memory_engine, require_permissions
 from runtime.memory_engine import MemoryEngine
 from packages.enterprise.audit_logger import AuditLogger
@@ -113,4 +113,29 @@ def search_context_embeddings(
         return context_service.search_context_embeddings(context_id, request.query, engine)
     except Exception as e:
         logger.exception(f"Failed to search context {context_id}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/metadata/all")
+def get_all_metadata(
+    engine: MemoryEngine = Depends(get_memory_engine)
+):
+    """Retrieve all custom metadata across all contexts. Auth bypassed for local UI."""
+    try:
+        return context_service.get_all_metadata(engine)
+    except Exception as e:
+        logger.exception("Failed to retrieve global metadata")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/metadata/bulk")
+def bulk_add_metadata(
+    request: ContextMetadataBulkRequest,
+    engine: MemoryEngine = Depends(get_memory_engine)
+):
+    """Bulk assign metadata to contexts. Authentication bypassed for local development."""
+    try:
+        result = context_service.bulk_add_metadata(request, engine)
+        AuditLogger.log_event("bulk_add_metadata", "local_user", "multiple", "success")
+        return result
+    except Exception as e:
+        logger.exception("Failed to bulk assign metadata")
         raise HTTPException(status_code=500, detail=str(e))

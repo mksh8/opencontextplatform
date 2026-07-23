@@ -2,10 +2,10 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './components/Layout';
 import Login from './pages/Login';
-import Signup from './pages/Signup';
 import TenantOnboarding from './pages/TenantOnboarding';
 
 // New Dashboard Imports
+import Dashboard from './pages/Dashboard';
 import ExecutiveDashboard from './pages/dashboard/ExecutiveDashboard';
 import AIActivityDashboard from './pages/dashboard/AIActivityDashboard';
 import ContextHealth from './pages/dashboard/ContextHealth';
@@ -77,6 +77,7 @@ import Timeline from './pages/Timeline';
 import Connectors from './pages/Connectors';
 import Providers from './pages/Providers';
 import Settings from './pages/Settings';
+import SecuritySSO from './pages/SecuritySSO';
 import Workspace from './pages/Workspace';
 import GraphExplorer from './pages/GraphExplorer';
 import IngestionJobs from './pages/IngestionJobs';
@@ -86,10 +87,41 @@ import Models from './pages/Models';
 import APIKeys from './pages/APIKeys';
 import APIPlayground from './pages/APIPlayground';
 import Organizations from './pages/Organizations';
+import OrganizationDashboard from './pages/OrganizationDashboard';
+import TenantDashboard from './pages/TenantDashboard';
+import OrganizationUsers from './pages/OrganizationUsers';
+import UserDetails from './pages/UserDetails';
+import UserForm from './pages/UserForm';
+import OrganizationTenants from './pages/OrganizationTenants';
+import TenantDetails from './pages/TenantDetails';
+import TenantForm from './pages/TenantForm';
+import OrganizationGroups from './pages/OrganizationGroups';
+import GroupDetails from './pages/GroupDetails';
+import GroupForm from './pages/GroupForm';
+import OrganizationDepartments from './pages/OrganizationDepartments';
+import DepartmentDetails from './pages/DepartmentDetails';
+import DepartmentForm from './pages/DepartmentForm';
 import Members from './pages/Members';
 import RolesPermissions from './pages/RolesPermissions';
 import AuditLogs from './pages/AuditLogs';
+import AuditLogDetails from './pages/AuditLogDetails';
 import Billing from './pages/Billing';
+import Marketplace from './pages/Marketplace';
+import ConnectorRegistry from './pages/ConnectorRegistry';
+import PluginRegistry from './pages/PluginRegistry';
+import SDKRegistry from './pages/SDKRegistry';
+import Policies from './pages/Policies';
+import PlatformHealth from './pages/PlatformHealth';
+import Integrations from './pages/Integrations';
+import Branding from './pages/Branding';
+import TenantWorkspaces from './pages/TenantWorkspaces';
+import TenantAIProviders from './pages/TenantAIProviders';
+import TenantStorage from './pages/TenantStorage';
+import TenantSecrets from './pages/TenantSecrets';
+import TenantAPIKeys from './pages/TenantAPIKeys';
+import TenantPolicies from './pages/TenantPolicies';
+import TenantQuota from './pages/TenantQuota';
+import TenantMonitoring from './pages/TenantMonitoring';
 
 import { ToastProvider } from './contexts/ToastContext';
 import { AuthProvider } from './contexts/AuthContext';
@@ -103,12 +135,12 @@ export default function App() {
         <Routes>
           {/* Public Authentication Routes */}
         <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<Signup />} />
         <Route path="/onboard" element={<TenantOnboarding />} />
 
         {/* Protected Routes */}
         <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
-          <Route index element={<Navigate to="/dashboard/executive" replace />} />
+          <Route index element={<Navigate to="/overview" replace />} />
+          <Route path="overview" element={<Dashboard />} />
           <Route path="dashboard/executive" element={<ExecutiveDashboard />} />
           <Route path="dashboard/ai-activity" element={<AIActivityDashboard />} />
           <Route path="dashboard/context-health" element={<ContextHealth />} />
@@ -171,19 +203,66 @@ export default function App() {
           
           <Route path="memories" element={<Memories />} />
           <Route path="timeline" element={<Timeline />} />
-          <Route path="providers" element={<Providers />} />
+          <Route path="providers" element={<TenantAIProviders />} />
+          <Route path="tenant/providers" element={<TenantAIProviders />} />
+          <Route path="policies" element={<Policies />} />
           <Route path="settings" element={<Settings />} />
+          <Route path="settings/sso" element={<SecuritySSO />} />
           <Route path="workspace" element={<Workspace />} />
-          <Route path="graphexplorer" element={<GraphExplorer />} />
+          <Route path="graph" element={<GraphExplorer />} />
           <Route path="sources" element={<Sources />} />
           <Route path="models" element={<Models />} />
-          <Route path="apikeys" element={<APIKeys />} />
+          <Route path="apikeys" element={<TenantAPIKeys />} />
+          <Route path="tenant/apikeys" element={<TenantAPIKeys />} />
           <Route path="apiplayground" element={<APIPlayground />} />
           <Route path="organizations" element={<Organizations />} />
-          <Route path="members" element={<Members />} />
+          <Route path="organization/overview" element={<OrganizationDashboard />} />
+          <Route path="tenant/dashboard" element={<TenantDashboard />} />
+          <Route path="workspaces" element={<TenantWorkspaces />} />
+          <Route path="tenant/workspaces" element={<TenantWorkspaces />} />
+          <Route path="storage" element={<TenantStorage />} />
+          <Route path="tenant/storage" element={<TenantStorage />} />
+          <Route path="secrets" element={<TenantSecrets />} />
+          <Route path="tenant/secrets" element={<TenantSecrets />} />
+          <Route path="policies" element={<TenantPolicies />} />
+          <Route path="tenant/policies" element={<TenantPolicies />} />
+          <Route path="quota" element={<TenantQuota />} />
+          <Route path="tenant/quota" element={<TenantQuota />} />
+          <Route path="monitoring" element={<TenantMonitoring />} />
+          <Route path="tenant/monitoring" element={<TenantMonitoring />} />
+          
+          <Route path="tenants" element={<OrganizationTenants />} />
+          <Route path="tenants/create" element={<TenantForm mode="create" />} />
+          <Route path="tenants/:id" element={<TenantDetails />} />
+          <Route path="tenants/:id/edit" element={<TenantForm mode="edit" />} />
+          
+          <Route path="global-users" element={<Members />} />
+          <Route path="members" element={<OrganizationUsers />} />
+          <Route path="members/create" element={<UserForm mode="create" />} />
+          <Route path="members/:id" element={<UserDetails />} />
+          <Route path="members/:id/edit" element={<UserForm mode="edit" />} />
+          
+          <Route path="groups" element={<OrganizationGroups />} />
+          <Route path="groups/create" element={<GroupForm mode="create" />} />
+          <Route path="groups/:id" element={<GroupDetails />} />
+          <Route path="groups/:id/edit" element={<GroupForm mode="edit" />} />
+          
+          <Route path="departments" element={<OrganizationDepartments />} />
+          <Route path="departments/create" element={<DepartmentForm mode="create" />} />
+          <Route path="departments/:id" element={<DepartmentDetails />} />
+          <Route path="departments/:id/edit" element={<DepartmentForm mode="edit" />} />
+          
           <Route path="roles" element={<RolesPermissions />} />
           <Route path="audit" element={<AuditLogs />} />
+          <Route path="audit/:id" element={<AuditLogDetails />} />
+          <Route path="health" element={<PlatformHealth />} />
+          <Route path="integrations" element={<Integrations />} />
+          <Route path="settings/branding" element={<Branding />} />
           <Route path="billing" element={<Billing />} />
+          <Route path="marketplace" element={<Marketplace />} />
+          <Route path="registry/connectors" element={<ConnectorRegistry />} />
+          <Route path="registry/plugins" element={<PluginRegistry />} />
+          <Route path="registry/sdks" element={<SDKRegistry />} />
           
           {/* Catch-all 404 Route */}
           <Route path="*" element={

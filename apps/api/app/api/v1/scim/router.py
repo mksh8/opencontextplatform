@@ -1,0 +1,77 @@
+from fastapi import APIRouter, Depends, HTTPException, Request
+from sqlalchemy.orm import Session
+from apps.api.app.api.dependencies import get_db_session
+from runtime.models import User
+from apps.api.app.modules.scim.schemas import SCIMUserCreate, SCIMUserResponse
+import uuid
+import datetime
+
+router = APIRouter(prefix="/scim", tags=["SCIM Provisioning"])
+
+def authenticate_scim(request: Request):
+    """Mock SCIM Bearer token auth"""
+    auth = request.headers.get("Authorization")
+    if not auth or not auth.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Unauthorized")
+    return "org_alpha_123" # Mock tenant extraction
+
+@router.post("/Users", response_model=SCIMUserResponse)
+def create_user(user: SCIMUserCreate, request: Request, db: Session = Depends(get_db_session)):
+    tenant_id = authenticate_scim(request)
+    
+    # Check if exists
+    email = user.emails[0].value if user.emails else user.userName
+    existing = db.query(User).filter(User.email == email).first()
+    if existing:
+        raise HTTPException(status_code=409, detail="User already exists")
+    
+    user_id = f"usr_{uuid.uuid4().hex[:12]}"
+    full_name = f"{user.name.givenName or ''} {user.name.familyName or ''}".strip() if user.name else user.userName
+    
+    db_user = User(
+        id=user_id,
+        tenant_id=tenant_id,
+        email=email,
+        full_name=full_name,
+        password_hash="scim_provisioned", # Won't be used, SSO only
+        role_name="viewer"
+    )
+    db.add(db_user)
+    db.commit()
+    
+    return SCIMUserResponse(
+        id=user_id,
+        userName=user.userName,
+        name=user.name,
+        emails=user.emails,
+        active=True,
+        meta={
+            "resourceType": "User",
+            "created": datetime.datetime.utcnow().isoformat() + "Z",
+            "lastModified": datetime.datetime.utcnow().isoformat() + "Z",
+        }
+    )
+
+@router.get("/Users", response_model=dict)
+def get_users(request: Request, db: Session = Depends(get_db_session)):
+    tenant_id = authenticate_scim(request)
+    users = db.query(User).filter(User.tenant_id == tenant_id).all()
+    
+    resources = []
+    for u in users:
+        resources.append({
+            "schemas": ["urn:ietf:params:scim:schemas:core:2.0:User"],
+            "id": u.id,
+            "userName": u.email,
+            "name": {"formatted": u.full_name},
+            "emails": [{"value": u.email, "primary": True}],
+            "active": True
+        })
+        
+    return {
+        "schemas": ["urn:ietf:params:scim:api:messages:2.0:ListResponse"],
+        "totalResults": len(resources),
+        "itemsPerPage": len(resources),
+        "startIndex": 1,
+        "Resources": resources
+    }

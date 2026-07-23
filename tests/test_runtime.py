@@ -1,5 +1,5 @@
 import unittest
-from runtime.arcadedb_provider import ArcadeDBProvider
+from packages.storage.arcadedb.operations import ArcadeDBRepository
 from runtime.memory_engine import MemoryEngine
 from runtime.retrieval_engine import RetrievalEngine
 from runtime.prompt_builder import PromptBuilder

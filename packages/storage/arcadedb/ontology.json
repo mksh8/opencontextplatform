@@ -1,0 +1,82 @@
+{
+  "vertices": [
+    {
+      "name": "FileNode",
+      "properties": {
+        "id": "STRING",
+        "name": "STRING"
+      }
+    },
+    {
+      "name": "ClassNode",
+      "properties": {
+        "id": "STRING",
+        "name": "STRING",
+        "docstring": "STRING"
+      }
+    },
+    {
+      "name": "FunctionNode",
+      "properties": {
+        "id": "STRING",
+        "name": "STRING",
+        "docstring": "STRING"
+      }
+    },
+    {
+      "name": "Episode",
+      "properties": {
+        "id": "STRING",
+        "tenant_id": "STRING",
+        "source": "STRING"
+      }
+    },
+    {
+      "name": "FactNode",
+      "properties": {
+        "id": "STRING",
+        "tenant_id": "STRING",
+        "content": "STRING"
+      }
+    }
+  ],
+  "edges": [
+    "HAS_PROVENANCE",
+    "CONTAINS",
+    "CALLS"
+  ],
+  "documents": [
+    {
+      "name": "User",
+      "properties": {
+        "id": "STRING",
+        "email": "STRING",
+        "password_hash": "STRING"
+      },
+      "indexes": [
+        "CREATE INDEX IF NOT EXISTS ON User (email) UNIQUE"
+      ]
+    },
+    {
+      "name": "Tenant",
+      "properties": {
+        "id": "STRING"
+      }
+    },
+    {
+      "name": "ConnectorConfig",
+      "properties": {
+        "id": "STRING",
+        "tenant_id": "STRING",
+        "name": "STRING"
+      }
+    },
+    {
+      "name": "ContextNode",
+      "properties": {
+        "id": "STRING",
+        "tenant_id": "STRING"
+      }
+    }
+  ]
+}

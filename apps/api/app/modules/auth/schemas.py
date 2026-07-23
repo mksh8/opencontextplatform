@@ -6,6 +6,7 @@ class UserProfile(BaseModel):
     email: EmailStr
     full_name: str
     avatar_url: Optional[str] = None
+    role_name: Optional[str] = None
 
 class LoginRequest(BaseModel):
     email: EmailStr

@@ -1,38 +1,179 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
+
+type ConsoleScope = 'Platform' | 'Organization' | 'Tenant' | 'Workspace';
 
 export default function Sidebar() {
-  // Using useLocation to determine the initial expanded section based on the current path could be nice,
-  // but for simplicity we'll just track the state.
-  const [expandedSection, setExpandedSection] = useState<string | null>('Dashboards');
+  const { user } = useAuth();
+  const location = useLocation();
+  
+  // Check if user is a super admin
+  const isSuperAdmin = user?.role === 'Super Admin' || user?.role_name === 'Super Admin' || user?.role === 'Platform Owner' || user?.role_name === 'Platform Owner';
+  
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [activeConsole, setActiveConsole] = useState<ConsoleScope>(isSuperAdmin ? 'Platform' : 'Workspace');
+  const [isSwitcherOpen, setIsSwitcherOpen] = useState(false);
 
-  const toggleSection = (section: string) => {
-    setExpandedSection(prev => (prev === section ? null : section));
-  };
+  // Available scopes based on role
+  const availableScopes: ConsoleScope[] = isSuperAdmin 
+    ? ['Platform', 'Organization', 'Tenant', 'Workspace'] 
+    : ['Organization', 'Tenant', 'Workspace'];
 
-  const SectionHeader = ({ title, sectionKey }: { title: string, sectionKey: string }) => {
-    const isExpanded = expandedSection === sectionKey;
-    return (
-      <div 
-        className="nav-section-title" 
-        onClick={() => toggleSection(sectionKey)}
-        style={{ 
-          marginTop: 24, 
-          cursor: 'pointer', 
-          display: 'flex', 
-          justifyContent: 'space-between', 
-          alignItems: 'center',
-          userSelect: 'none'
-        }}
-      >
-        <span>{title}</span>
-        <span style={{ fontSize: '12px', opacity: 0.5 }}>{isExpanded ? '▼' : '▶'}</span>
+  // Sync active console with current route
+  useEffect(() => {
+    if (location.pathname.startsWith('/tenant/') || location.pathname === '/workspaces' || location.pathname === '/providers' || location.pathname === '/storage' || location.pathname === '/secrets' || location.pathname === '/apikeys' || location.pathname === '/policies' || location.pathname === '/quota' || location.pathname === '/monitoring') {
+      setActiveConsole('Tenant');
+    } else if (location.pathname.startsWith('/organization/')) {
+      setActiveConsole('Organization');
+    }
+  }, [location.pathname]);
+
+  // Close switcher when clicking outside
+  useEffect(() => {
+    const handleClickOutside = () => setIsSwitcherOpen(false);
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, []);
+
+  const NavSection = ({ title, children }: { title: string; children: React.ReactNode }) => (
+    <div className="nav-category">
+      <h3 className="nav-category-title">{title}</h3>
+      {children}
+    </div>
+  );
+
+  const renderPlatformNav = () => (
+    <>
+      <div className="nav-item-standalone">
+        <NavLink to="/overview" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>📊</span> Dashboard</NavLink>
       </div>
-    );
+      <NavSection title="MANAGEMENT">
+        <NavLink to="/organizations" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>🏢</span> Organizations</NavLink>
+        <NavLink to="/global-users" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>🌍</span> Global Users</NavLink>
+        <NavLink to="/billing" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>💳</span> Billing</NavLink>
+      </NavSection>
+      <NavSection title="REGISTRIES">
+        <NavLink to="/marketplace" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>🏪</span> Marketplace</NavLink>
+        <NavLink to="/registry/connectors" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>🔌</span> Connector Registry</NavLink>
+        <NavLink to="/registry/plugins" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>🧩</span> Plugin Registry</NavLink>
+        <NavLink to="/registry/sdks" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>📦</span> SDK Registry</NavLink>
+      </NavSection>
+      <NavSection title="SYSTEM">
+        <NavLink to="/providers" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>⚡</span> Global AI Providers</NavLink>
+        <NavLink to="/policies" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>📜</span> Global Policies</NavLink>
+        <NavLink to="/audit" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>🔍</span> Audit Logs</NavLink>
+        <NavLink to="/health" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>❤️</span> System Health</NavLink>
+        <NavLink to="/settings" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>⚙️</span> Settings</NavLink>
+      </NavSection>
+      <NavSection title="OPERATIONS">
+        <NavLink to="/support" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>🎧</span> Support</NavLink>
+        <NavLink to="/feature-flags" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>🚩</span> Feature Flags</NavLink>
+      </NavSection>
+    </>
+  );
+
+  const renderOrganizationNav = () => (
+    <>
+      <div className="nav-item-standalone">
+        <NavLink to="/organization/overview" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>📊</span> Dashboard</NavLink>
+      </div>
+      <NavSection title="DIRECTORY">
+        <NavLink to="/tenants" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>🛡️</span> Tenants</NavLink>
+        <NavLink to="/members" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>👥</span> Users</NavLink>
+        <NavLink to="/groups" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>👨‍👩‍👧‍👦</span> Groups</NavLink>
+        <NavLink to="/departments" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>🏢</span> Departments</NavLink>
+      </NavSection>
+      <NavSection title="SETTINGS">
+        <NavLink to="/settings" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>⚙️</span> General Settings</NavLink>
+        <NavLink to="/settings/sso" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>🛡️</span> Security & SSO</NavLink>
+        <NavLink to="/billing" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>💳</span> Billing & Usage</NavLink>
+        <NavLink to="/audit" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>📜</span> Audit Logs</NavLink>
+        <NavLink to="/integrations" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>🔌</span> Integrations</NavLink>
+        <NavLink to="/settings/branding" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>🎨</span> Branding</NavLink>
+      </NavSection>
+    </>
+  );
+
+  const renderTenantNav = () => (
+    <>
+      <div className="nav-item-standalone">
+        <NavLink to="/tenant/dashboard" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>📊</span> Dashboard</NavLink>
+      </div>
+      <NavSection title="RESOURCES">
+        <NavLink to="/workspaces" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>💻</span> Workspaces</NavLink>
+        <NavLink to="/members" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>👥</span> Users</NavLink>
+        <NavLink to="/providers" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>⚡</span> AI Providers</NavLink>
+        <NavLink to="/storage" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>🗄️</span> Storage</NavLink>
+      </NavSection>
+      <NavSection title="SECURITY">
+        <NavLink to="/secrets" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>🤫</span> Secrets</NavLink>
+        <NavLink to="/apikeys" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>🔑</span> API Keys</NavLink>
+        <NavLink to="/policies" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>📜</span> Policies</NavLink>
+      </NavSection>
+      <NavSection title="OPERATIONS">
+        <NavLink to="/quota" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>⚖️</span> Quota</NavLink>
+        <NavLink to="/monitoring" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>📈</span> Monitoring</NavLink>
+        <NavLink to="/logs" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>📝</span> Logs</NavLink>
+        <NavLink to="/usage" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>📊</span> Usage</NavLink>
+        <NavLink to="/settings" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>⚙️</span> Tenant Settings</NavLink>
+      </NavSection>
+    </>
+  );
+
+  const renderWorkspaceNav = () => (
+    <>
+      <div className="nav-item-standalone">
+        <NavLink to="/projects" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>🚀</span> Projects</NavLink>
+      </div>
+      <NavSection title="DATA PLATFORM">
+        <NavLink to="/catalog" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>📚</span> Catalog</NavLink>
+        <NavLink to="/sources" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>📡</span> Datasources</NavLink>
+        <NavLink to="/connectors" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>🔌</span> Connectors</NavLink>
+        <NavLink to="/pipelines" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>🛤️</span> Pipelines</NavLink>
+        <NavLink to="/documents" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>📄</span> Documents</NavLink>
+      </NavSection>
+      <NavSection title="CONTEXT ENGINE">
+        <NavLink to="/contexts/all" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>🧠</span> Context Engine</NavLink>
+        <NavLink to="/memory" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>💾</span> Memory</NavLink>
+        <NavLink to="/graph" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>🕸️</span> Knowledge Graph</NavLink>
+        <NavLink to="/ontology" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>🧬</span> Ontology</NavLink>
+        <NavLink to="/search/universal" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>🔍</span> Search</NavLink>
+      </NavSection>
+      <NavSection title="AI STUDIO">
+        <NavLink to="/agents" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>🤖</span> Agents</NavLink>
+        <NavLink to="/workflows" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>⚙️</span> Workflows</NavLink>
+        <NavLink to="/prompts" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>✍️</span> Prompt Studio</NavLink>
+        <NavLink to="/evaluations" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>🧪</span> Evaluations</NavLink>
+      </NavSection>
+      <NavSection title="OPERATIONS">
+        <NavLink to="/observability" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>👁️</span> Observability</NavLink>
+      </NavSection>
+    </>
+  );
+
+  const getScopeIcon = (scope: ConsoleScope) => {
+    switch(scope) {
+      case 'Platform': return '🌐';
+      case 'Organization': return '🏢';
+      case 'Tenant': return '🛡️';
+      case 'Workspace': return '💻';
+    }
   };
+
+  if (isCollapsed) {
+    return (
+      <aside className="sidebar sidebar-collapsed">
+        <div className="sidebar-brand-collapsed">
+          <div style={{ width: 28, height: 28, background: 'linear-gradient(135deg, #8b5cf6, #3b82f6)', borderRadius: 6 }}></div>
+        </div>
+        <button onClick={() => setIsCollapsed(false)} className="collapse-btn" title="Expand sidebar">▶</button>
+      </aside>
+    );
+  }
 
   return (
-    <aside className="sidebar" style={{ overflowY: 'auto' }}>
+    <aside className="sidebar">
       <div className="sidebar-brand">
         <div style={{ width: 32, height: 32, background: 'linear-gradient(135deg, #8b5cf6, #3b82f6)', borderRadius: 8 }}></div>
         <div>
@@ -41,113 +182,46 @@ export default function Sidebar() {
         </div>
       </div>
 
-      <div className="nav-section">
+      {/* Context Switcher */}
+      <div style={{ padding: '0 20px', marginBottom: 20, position: 'relative' }}>
+        <div 
+          onClick={(e) => { e.stopPropagation(); setIsSwitcherOpen(!isSwitcherOpen); }}
+          style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: 'var(--bg-elevated)', border: '1px solid var(--border-color)', borderRadius: 8, cursor: 'pointer', color: '#fff', fontSize: 13, fontWeight: 500 }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ fontSize: 16 }}>{getScopeIcon(activeConsole)}</span>
+            <span>{activeConsole} Console</span>
+          </div>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+        </div>
         
-        <SectionHeader title="Dashboards" sectionKey="Dashboards" />
-        {expandedSection === 'Dashboards' && (
-          <div className="nav-submenu">
-            <NavLink to="/dashboard/executive" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>📈</span> Executive</NavLink>
-            <NavLink to="/dashboard/ai-activity" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>🤖</span> AI Activity</NavLink>
-            <NavLink to="/dashboard/context-health" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>❤️</span> Context Health</NavLink>
-            <NavLink to="/dashboard/cost" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>💰</span> Cost Analytics</NavLink>
-            <NavLink to="/dashboard/provider" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>⚡</span> Provider Stats</NavLink>
-            <NavLink to="/dashboard/workspace" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>🏢</span> Workspace</NavLink>
-            <NavLink to="/dashboard/search" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>🔍</span> Search Analytics</NavLink>
-            <NavLink to="/dashboard/api" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>📡</span> API Analytics</NavLink>
-            <NavLink to="/dashboard/storage" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>💾</span> Storage</NavLink>
-            <NavLink to="/dashboard/agent" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>🕵️</span> Agent Analytics</NavLink>
-          </div>
-        )}
-
-        <SectionHeader title="Context Management" sectionKey="Context Management" />
-        {expandedSection === 'Context Management' && (
-          <div className="nav-submenu">
-            <NavLink to="/contexts/all" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>📦</span> All Contexts</NavLink>
-          </div>
-        )}
-        
-        <SectionHeader title="Collections" sectionKey="Collections" />
-        {expandedSection === 'Collections' && (
-          <div className="nav-submenu">
-            <NavLink to="/collections/all" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>📂</span> All Collections</NavLink>
-            <NavLink to="/collections/create" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>➕</span> Create Collection</NavLink>
-            <NavLink to="/collections/details" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>📄</span> Collection Details</NavLink>
-            <NavLink to="/collections/nested" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>🗂️</span> Nested Tree</NavLink>
-            <NavLink to="/collections/permissions" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>🔒</span> Permissions</NavLink>
-            <NavLink to="/collections/analytics" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>📈</span> Analytics</NavLink>
-          </div>
-        )}
-        
-        <SectionHeader title="Search & Retrieval" sectionKey="Search & Retrieval" />
-        {expandedSection === 'Search & Retrieval' && (
-          <div className="nav-submenu">
-            <NavLink to="/search/universal" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>🔍</span> Universal Search</NavLink>
-            <NavLink to="/search/hybrid" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>⚡</span> Hybrid Search</NavLink>
-            <NavLink to="/search/semantic" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>🧠</span> Semantic Search</NavLink>
-            <NavLink to="/search/graph" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>🕸️</span> Graph Search</NavLink>
-            <NavLink to="/search/saved" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>🔖</span> Saved Searches</NavLink>
-            <NavLink to="/search/history" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>📜</span> Search History</NavLink>
-            <NavLink to="/search/analytics" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>📊</span> Search Analytics</NavLink>
-            <NavLink to="/memories" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>🗄️</span> Memories</NavLink>
-            <NavLink to="/timeline" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>⏱️</span> Timeline</NavLink>
-            <NavLink to="/graphexplorer" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>🕸️</span> Graph Explorer</NavLink>
-          </div>
-        )}
-
-        <SectionHeader title="Connectors & Pipelines" sectionKey="Connectors & Pipelines" />
-        {expandedSection === 'Connectors & Pipelines' && (
-          <div className="nav-submenu">
-            <NavLink to="/connectors/marketplace" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>🛍️</span> Marketplace</NavLink>
-            <NavLink to="/connectors/installed" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>🔌</span> Installed</NavLink>
-            <NavLink to="/connectors/create" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>➕</span> Create Source</NavLink>
-            <NavLink to="/connectors/details" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>📄</span> Configuration</NavLink>
-            <NavLink to="/connectors/auth" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>🔑</span> Authentication</NavLink>
-            <NavLink to="/connectors/scheduling" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>⏰</span> Scheduling</NavLink>
-            <NavLink to="/connectors/sync" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>🔄</span> Sync History</NavLink>
-            <NavLink to="/connectors/logs" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>📜</span> Worker Logs</NavLink>
-            <NavLink to="/connectors/health" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>❤️</span> Health Telemetry</NavLink>
-            <NavLink to="/connectors/templates" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>📋</span> Templates</NavLink>
-          </div>
-        )}
-
-        <SectionHeader title="Ingestion & ETL" sectionKey="Ingestion & ETL" />
-        {expandedSection === 'Ingestion & ETL' && (
-          <div className="nav-submenu">
-            <NavLink to="/ingestion/pipelines" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>⚙️</span> Ingestion Pipelines</NavLink>
-            <NavLink to="/ingestion/preview" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>👀</span> Data Preview</NavLink>
-            <NavLink to="/ingestion/etl" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>🔄</span> Field Mapping</NavLink>
-            <NavLink to="/ingestion/validations" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>🛡️</span> Validations</NavLink>
-            <NavLink to="/ingestion/chunking" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>🔪</span> Chunking Strategy</NavLink>
-            <NavLink to="/ingestion/embeddings" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>🧠</span> Embedding Config</NavLink>
-            <NavLink to="/ingestion/dlq" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>☠️</span> Dead Letter Queue</NavLink>
-            <NavLink to="/ingestion/webhooks" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>🔗</span> Inbound Webhooks</NavLink>
-            <NavLink to="/ingestion/telemetry" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>📊</span> Telemetry</NavLink>
-          </div>
-        )}
-
-        <SectionHeader title="Configuration" sectionKey="Configuration" />
-        {expandedSection === 'Configuration' && (
-          <div className="nav-submenu">
-            <NavLink to="/providers" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>⚡</span> Providers</NavLink>
-            <NavLink to="/models" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>🧠</span> Models</NavLink>
-            <NavLink to="/settings" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>🛠️</span> Settings</NavLink>
-            <NavLink to="/apikeys" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>🔑</span> API Keys</NavLink>
-            <NavLink to="/apiplayground" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>💻</span> API Playground</NavLink>
-          </div>
-        )}
-
-        <SectionHeader title="Governance" sectionKey="Governance" />
-        {expandedSection === 'Governance' && (
-          <div className="nav-submenu">
-            <NavLink to="/organizations" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>🏢</span> Organizations</NavLink>
-            <NavLink to="/workspace" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>💻</span> Workspaces</NavLink>
-            <NavLink to="/members" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>👥</span> Members</NavLink>
-            <NavLink to="/roles" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>🛡️</span> Roles & Permissions</NavLink>
-            <NavLink to="/audit" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>📜</span> Audit Logs</NavLink>
-            <NavLink to="/billing" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}><span>💳</span> Billing & Usage</NavLink>
+        {isSwitcherOpen && (
+          <div style={{ position: 'absolute', top: 48, left: 20, right: 20, background: 'var(--bg-elevated)', border: '1px solid var(--border-color)', borderRadius: 8, padding: '4px 0', zIndex: 50, boxShadow: '0 4px 12px rgba(0,0,0,0.4)' }}>
+            {availableScopes.map(scope => (
+              <div 
+                key={scope}
+                onClick={(e) => { e.stopPropagation(); setActiveConsole(scope); setIsSwitcherOpen(false); }}
+                style={{ padding: '10px 14px', color: activeConsole === scope ? 'var(--accent-purple)' : '#fff', cursor: 'pointer', fontSize: 13, display: 'flex', alignItems: 'center', gap: 8 }}
+                onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
+                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+              >
+                <span style={{ fontSize: 16 }}>{getScopeIcon(scope)}</span>
+                {scope} Console
+                {activeConsole === scope && <svg style={{ marginLeft: 'auto' }} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="20 6 9 17 4 12"></polyline></svg>}
+              </div>
+            ))}
           </div>
         )}
       </div>
+
+      <div className="nav-section">
+        {activeConsole === 'Platform' && renderPlatformNav()}
+        {activeConsole === 'Organization' && renderOrganizationNav()}
+        {activeConsole === 'Tenant' && renderTenantNav()}
+        {activeConsole === 'Workspace' && renderWorkspaceNav()}
+      </div>
+
+      <button onClick={() => setIsCollapsed(true)} className="collapse-btn-bottom">◀ Collapse</button>
     </aside>
   );
 }
