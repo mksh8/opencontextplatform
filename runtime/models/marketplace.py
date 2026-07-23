@@ -1,10 +1,16 @@
+"""Marketplace schema ORM models for categories, items, and installations."""
+
 import uuid
-from sqlalchemy import Column, String, Text, ForeignKey, DateTime
-from sqlalchemy.dialects.postgresql import UUID, JSONB
+
+from sqlalchemy import Column, DateTime, ForeignKey, String, Text
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.sql import func
+
 from runtime.models.base import Base
 
+
 class Category(Base):
+    """ORM model for marketplace categories."""
     __tablename__ = "categories"
     __table_args__ = {"schema": "marketplace"}
 
@@ -14,6 +20,7 @@ class Category(Base):
 
 
 class Item(Base):
+    """ORM model for published marketplace items (plugins, tools, agents)."""
     __tablename__ = "items"
     __table_args__ = {"schema": "marketplace"}
 
@@ -27,6 +34,7 @@ class Item(Base):
 
 
 class Installation(Base):
+    """ORM model for installed marketplace items within workspaces."""
     __tablename__ = "installations"
     __table_args__ = {"schema": "marketplace"}
 

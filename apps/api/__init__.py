@@ -1,1 +1,1 @@
-# Make apps.api a package
+"""OpenContextPlatform API application package."""

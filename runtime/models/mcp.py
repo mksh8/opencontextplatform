@@ -1,10 +1,16 @@
+"""MCP schema ORM models for Model Context Protocol servers, tools, permissions, and executions."""
+
 import uuid
-from sqlalchemy import Column, String, Text, ForeignKey, Integer, DateTime
-from sqlalchemy.dialects.postgresql import UUID, JSONB
+
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, Text
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.sql import func
+
 from runtime.models.base import Base
 
+
 class MCPServer(Base):
+    """ORM model for Model Context Protocol servers."""
     __tablename__ = "mcp_servers"
     __table_args__ = {"schema": "mcp"}
 
@@ -19,11 +25,14 @@ class MCPServer(Base):
 
 
 class MCPTool(Base):
+    """ORM model for MCP exposed tools."""
     __tablename__ = "mcp_tools"
     __table_args__ = {"schema": "mcp"}
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    server_id = Column(UUID(as_uuid=True), ForeignKey("mcp.mcp_servers.id", ondelete="CASCADE"))
+    server_id = Column(
+        UUID(as_uuid=True), ForeignKey("mcp.mcp_servers.id", ondelete="CASCADE")
+    )
     tool_name = Column(String(255), nullable=False)
     description = Column(Text)
     input_schema = Column(JSONB)
@@ -31,14 +40,24 @@ class MCPTool(Base):
 
 
 class MCPToolPermission(Base):
+    """ORM model for role-based MCP tool permissions."""
     __tablename__ = "mcp_tool_permissions"
     __table_args__ = {"schema": "mcp"}
 
-    tool_id = Column(UUID(as_uuid=True), ForeignKey("mcp.mcp_tools.id", ondelete="CASCADE"), primary_key=True)
-    role_id = Column(UUID(as_uuid=True), ForeignKey("identity.roles.id", ondelete="CASCADE"), primary_key=True)
+    tool_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("mcp.mcp_tools.id", ondelete="CASCADE"),
+        primary_key=True,
+    )
+    role_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("identity.roles.id", ondelete="CASCADE"),
+        primary_key=True,
+    )
 
 
 class MCPToolExecution(Base):
+    """ORM model for tracking MCP tool execution logs."""
     __tablename__ = "mcp_tool_executions"
     __table_args__ = {"schema": "mcp"}
 

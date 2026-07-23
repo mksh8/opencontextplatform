@@ -1,15 +1,25 @@
+"""AI schema ORM models for models, pricing, templates, versions, and executions."""
+
 import uuid
-from sqlalchemy import Column, String, Text, ForeignKey, Integer, Boolean, Numeric, DateTime
-from sqlalchemy.dialects.postgresql import UUID, JSONB
+
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, Numeric, String, Text
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.sql import func
+
 from runtime.models.base import Base
 
+
 class EmbeddingModel(Base):
+    """ORM model for embedding model configurations."""
     __tablename__ = "embedding_models"
     __table_args__ = {"schema": "ai"}
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    provider_config_id = Column(UUID(as_uuid=True), ForeignKey("provider.provider_configs.id", ondelete="CASCADE"), nullable=False)
+    provider_config_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("provider.provider_configs.id", ondelete="CASCADE"),
+        nullable=False,
+    )
     model_name = Column(String(255), nullable=False)
     dimensions = Column(Integer, nullable=False)
     max_tokens = Column(Integer)
@@ -20,11 +30,16 @@ class EmbeddingModel(Base):
 
 
 class ChatModel(Base):
+    """ORM model for LLM chat models."""
     __tablename__ = "chat_models"
     __table_args__ = {"schema": "ai"}
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    provider_config_id = Column(UUID(as_uuid=True), ForeignKey("provider.provider_configs.id", ondelete="CASCADE"), nullable=False)
+    provider_config_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("provider.provider_configs.id", ondelete="CASCADE"),
+        nullable=False,
+    )
     model_name = Column(String(255), nullable=False)
     context_window = Column(Integer)
     max_output_tokens = Column(Integer)
@@ -36,11 +51,16 @@ class ChatModel(Base):
 
 
 class RerankerModel(Base):
+    """ORM model for search reranker models."""
     __tablename__ = "reranker_models"
     __table_args__ = {"schema": "ai"}
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    provider_config_id = Column(UUID(as_uuid=True), ForeignKey("provider.provider_configs.id", ondelete="CASCADE"), nullable=False)
+    provider_config_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("provider.provider_configs.id", ondelete="CASCADE"),
+        nullable=False,
+    )
     model_name = Column(String(255), nullable=False)
     max_documents = Column(Integer)
     metadata_json = Column("metadata", JSONB, default=dict)
@@ -48,6 +68,7 @@ class RerankerModel(Base):
 
 
 class ModelPricing(Base):
+    """ORM model for AI model pricing matrix."""
     __tablename__ = "model_pricing"
     __table_args__ = {"schema": "ai"}
 
@@ -61,6 +82,7 @@ class ModelPricing(Base):
 
 
 class PromptTemplate(Base):
+    """ORM model for prompt templates."""
     __tablename__ = "prompt_templates"
     __table_args__ = {"schema": "ai"}
 
@@ -75,11 +97,16 @@ class PromptTemplate(Base):
 
 
 class PromptVersion(Base):
+    """ORM model for prompt template versioning."""
     __tablename__ = "prompt_versions"
     __table_args__ = {"schema": "ai"}
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    template_id = Column(UUID(as_uuid=True), ForeignKey("ai.prompt_templates.id", ondelete="CASCADE"), nullable=False)
+    template_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("ai.prompt_templates.id", ondelete="CASCADE"),
+        nullable=False,
+    )
     version = Column(Integer, nullable=False)
     system_prompt = Column(Text)
     user_prompt = Column(Text)
@@ -89,11 +116,16 @@ class PromptVersion(Base):
 
 
 class PromptVariable(Base):
+    """ORM model for prompt template variable placeholders."""
     __tablename__ = "prompt_variables"
     __table_args__ = {"schema": "ai"}
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    prompt_version_id = Column(UUID(as_uuid=True), ForeignKey("ai.prompt_versions.id", ondelete="CASCADE"), nullable=False)
+    prompt_version_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("ai.prompt_versions.id", ondelete="CASCADE"),
+        nullable=False,
+    )
     variable_name = Column(String(255), nullable=False)
     data_type = Column(String(50))
     default_value = Column(Text)
@@ -101,13 +133,16 @@ class PromptVariable(Base):
 
 
 class PromptExecution(Base):
+    """ORM model for tracking prompt execution telemetry."""
     __tablename__ = "prompt_executions"
     __table_args__ = {"schema": "ai"}
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     prompt_version_id = Column(UUID(as_uuid=True), ForeignKey("ai.prompt_versions.id"))
     user_id = Column(UUID(as_uuid=True), ForeignKey("identity.users.id"))
-    provider_config_id = Column(UUID(as_uuid=True), ForeignKey("provider.provider_configs.id"))
+    provider_config_id = Column(
+        UUID(as_uuid=True), ForeignKey("provider.provider_configs.id")
+    )
     model_name = Column(String(255))
     input_tokens = Column(Integer)
     output_tokens = Column(Integer)

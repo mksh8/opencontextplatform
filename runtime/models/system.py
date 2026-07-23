@@ -1,10 +1,16 @@
+"""System schema ORM models for feature flags, settings, configuration profiles, maintenance, and health."""
+
 import uuid
-from sqlalchemy import Column, String, Text, ForeignKey, Boolean, Numeric, Integer, DateTime
-from sqlalchemy.dialects.postgresql import UUID, JSONB
+
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, Numeric, String, Text
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.sql import func
+
 from runtime.models.base import Base
 
+
 class FeatureFlag(Base):
+    """ORM model for system and workspace feature flags."""
     __tablename__ = "feature_flags"
     __table_args__ = {"schema": "system"}
 
@@ -18,10 +24,13 @@ class FeatureFlag(Base):
     metadata_json = Column("metadata", JSONB, default=dict)
     created_by = Column(UUID(as_uuid=True), ForeignKey("identity.users.id"))
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+    updated_at = Column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
 
 
 class SystemSetting(Base):
+    """ORM model for system and tenant key-value configuration settings."""
     __tablename__ = "system_settings"
     __table_args__ = {"schema": "system"}
 
@@ -35,10 +44,13 @@ class SystemSetting(Base):
     created_by = Column(UUID(as_uuid=True), ForeignKey("identity.users.id"))
     updated_by = Column(UUID(as_uuid=True), ForeignKey("identity.users.id"))
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+    updated_at = Column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
 
 
 class ConfigurationProfile(Base):
+    """ORM model for versioned configuration profiles."""
     __tablename__ = "configuration_profiles"
     __table_args__ = {"schema": "system"}
 
@@ -53,6 +65,7 @@ class ConfigurationProfile(Base):
 
 
 class MaintenanceWindow(Base):
+    """ORM model for scheduled system maintenance windows."""
     __tablename__ = "maintenance_windows"
     __table_args__ = {"schema": "system"}
 
@@ -67,6 +80,7 @@ class MaintenanceWindow(Base):
 
 
 class SystemHealth(Base):
+    """ORM model for system component health check records."""
     __tablename__ = "system_health"
     __table_args__ = {"schema": "system"}
 

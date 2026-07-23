@@ -1,10 +1,16 @@
+"""Governance schema ORM models for glossaries, terms, tags, classifications, and owners."""
+
 import uuid
-from sqlalchemy import Column, String, Text, ForeignKey, DateTime
+
+from sqlalchemy import Column, DateTime, ForeignKey, String, Text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.sql import func
+
 from runtime.models.base import Base
 
+
 class BusinessGlossary(Base):
+    """ORM model for business glossaries."""
     __tablename__ = "business_glossaries"
     __table_args__ = {"schema": "governance"}
 
@@ -16,17 +22,22 @@ class BusinessGlossary(Base):
 
 
 class GlossaryTerm(Base):
+    """ORM model for business glossary terms."""
     __tablename__ = "glossary_terms"
     __table_args__ = {"schema": "governance"}
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    glossary_id = Column(UUID(as_uuid=True), ForeignKey("governance.business_glossaries.id", ondelete="CASCADE"))
+    glossary_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("governance.business_glossaries.id", ondelete="CASCADE"),
+    )
     term = Column(String(255), nullable=False, index=True)
     definition = Column(Text)
     steward_user_id = Column(UUID(as_uuid=True), ForeignKey("identity.users.id"))
 
 
 class Tag(Base):
+    """ORM model for governance tags."""
     __tablename__ = "tags"
     __table_args__ = {"schema": "governance"}
 
@@ -37,15 +48,21 @@ class Tag(Base):
 
 
 class TagAssignment(Base):
+    """ORM model for tag assignments to entities."""
     __tablename__ = "tag_assignments"
     __table_args__ = {"schema": "governance"}
 
-    tag_id = Column(UUID(as_uuid=True), ForeignKey("governance.tags.id", ondelete="CASCADE"), primary_key=True)
+    tag_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("governance.tags.id", ondelete="CASCADE"),
+        primary_key=True,
+    )
     entity_type = Column(String(100), nullable=False, primary_key=True)
     entity_id = Column(UUID(as_uuid=True), nullable=False, primary_key=True)
 
 
 class Classification(Base):
+    """ORM model for data classifications (PII, Confidential, etc.)."""
     __tablename__ = "classifications"
     __table_args__ = {"schema": "governance"}
 
@@ -56,6 +73,7 @@ class Classification(Base):
 
 
 class Owner(Base):
+    """ORM model for entity owners."""
     __tablename__ = "owners"
     __table_args__ = {"schema": "governance"}
 

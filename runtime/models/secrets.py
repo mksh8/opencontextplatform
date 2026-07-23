@@ -1,10 +1,16 @@
+"""Secrets schema ORM models for KMS secret stores, secrets, and access logs."""
+
 import uuid
-from sqlalchemy import Column, String, Text, ForeignKey, Integer, Boolean, DateTime
-from sqlalchemy.dialects.postgresql import UUID, JSONB, INET
+
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, Text
+from sqlalchemy.dialects.postgresql import INET, JSONB, UUID
 from sqlalchemy.sql import func
+
 from runtime.models.base import Base
 
+
 class SecretStore(Base):
+    """ORM model for KMS secret stores (Vault, AWS Secrets Manager, etc.)."""
     __tablename__ = "secret_stores"
     __table_args__ = {"schema": "secrets"}
 
@@ -18,11 +24,15 @@ class SecretStore(Base):
 
 
 class Secret(Base):
+    """ORM model for encrypted secrets."""
     __tablename__ = "secrets"
     __table_args__ = {"schema": "secrets"}
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    secret_store_id = Column(UUID(as_uuid=True), ForeignKey("secrets.secret_stores.id", ondelete="CASCADE"))
+    secret_store_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("secrets.secret_stores.id", ondelete="CASCADE"),
+    )
     secret_key = Column(String(255), nullable=False)
     encrypted_value = Column(Text, nullable=False)
     version = Column(Integer, default=1)
@@ -32,6 +42,7 @@ class Secret(Base):
 
 
 class SecretAccessLog(Base):
+    """ORM model for audit logging secret reads and rotations."""
     __tablename__ = "secret_access_logs"
     __table_args__ = {"schema": "secrets"}
 

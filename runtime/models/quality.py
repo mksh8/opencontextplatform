@@ -1,10 +1,16 @@
+"""Quality schema ORM models for data quality rules, checks, and issues."""
+
 import uuid
-from sqlalchemy import Column, String, Text, ForeignKey, Numeric, DateTime
-from sqlalchemy.dialects.postgresql import UUID, JSONB
+
+from sqlalchemy import Column, DateTime, ForeignKey, Numeric, String, Text
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.sql import func
+
 from runtime.models.base import Base
 
+
 class QualityRule(Base):
+    """ORM model for data quality rules."""
     __tablename__ = "quality_rules"
     __table_args__ = {"schema": "quality"}
 
@@ -17,6 +23,7 @@ class QualityRule(Base):
 
 
 class QualityCheck(Base):
+    """ORM model for executed quality checks."""
     __tablename__ = "quality_checks"
     __table_args__ = {"schema": "quality"}
 
@@ -29,6 +36,7 @@ class QualityCheck(Base):
 
 
 class QualityIssue(Base):
+    """ORM model for identified quality issues."""
     __tablename__ = "quality_issues"
     __table_args__ = {"schema": "quality"}
 

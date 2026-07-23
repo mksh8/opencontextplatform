@@ -1,10 +1,16 @@
+"""Common schema ORM models for status types, environments, severity levels, and audit events."""
+
 import uuid
-from sqlalchemy import Column, String, Text, ForeignKey, SmallInteger, DateTime
-from sqlalchemy.dialects.postgresql import UUID, JSONB
+
+from sqlalchemy import Column, DateTime, ForeignKey, SmallInteger, String, Text
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.sql import func
+
 from runtime.models.base import Base
 
+
 class StatusType(Base):
+    """ORM model for common status types."""
     __tablename__ = "status_types"
     __table_args__ = {"schema": "common"}
 
@@ -13,6 +19,7 @@ class StatusType(Base):
 
 
 class Environment(Base):
+    """ORM model for environment codes."""
     __tablename__ = "environments"
     __table_args__ = {"schema": "common"}
 
@@ -21,6 +28,7 @@ class Environment(Base):
 
 
 class SeverityLevel(Base):
+    """ORM model for severity levels."""
     __tablename__ = "severity_levels"
     __table_args__ = {"schema": "common"}
 
@@ -29,6 +37,7 @@ class SeverityLevel(Base):
 
 
 class AuditEvent(Base):
+    """ORM model for common audit log events."""
     __tablename__ = "audit_events"
     __table_args__ = {"schema": "common"}
 

@@ -1,10 +1,16 @@
+"""Datasource schema ORM models for datasource types and instances."""
+
 import uuid
-from sqlalchemy import Column, String, ForeignKey, Boolean, Integer, DateTime
-from sqlalchemy.dialects.postgresql import UUID, JSONB
+
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.sql import func
+
 from runtime.models.base import Base
 
+
 class DatasourceType(Base):
+    """ORM model for datasource types (PostgreSQL, Snowflake, S3, etc.)."""
     __tablename__ = "datasource_types"
     __table_args__ = {"schema": "datasource"}
 
@@ -17,12 +23,22 @@ class DatasourceType(Base):
 
 
 class Datasource(Base):
+    """ORM model for registered datasources."""
     __tablename__ = "datasources"
     __table_args__ = {"schema": "datasource"}
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    workspace_id = Column(UUID(as_uuid=True), ForeignKey("workspace.workspaces.id"), nullable=False, index=True)
-    datasource_type_id = Column(UUID(as_uuid=True), ForeignKey("datasource.datasource_types.id"), nullable=False)
+    workspace_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("workspace.workspaces.id"),
+        nullable=False,
+        index=True,
+    )
+    datasource_type_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("datasource.datasource_types.id"),
+        nullable=False,
+    )
     name = Column(String(255), nullable=False)
     host = Column(String(255))
     port = Column(Integer)

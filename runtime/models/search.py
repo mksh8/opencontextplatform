@@ -1,10 +1,16 @@
+"""Search schema ORM models for saved searches and search history."""
+
 import uuid
-from sqlalchemy import Column, String, Text, ForeignKey, Integer, DateTime
-from sqlalchemy.dialects.postgresql import UUID, JSONB
+
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, Text
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.sql import func
+
 from runtime.models.base import Base
 
+
 class SavedSearch(Base):
+    """ORM model for user saved search queries."""
     __tablename__ = "saved_searches"
     __table_args__ = {"schema": "search"}
 
@@ -17,6 +23,7 @@ class SavedSearch(Base):
 
 
 class SearchHistory(Base):
+    """ORM model for user search query audit trail."""
     __tablename__ = "search_history"
     __table_args__ = {"schema": "search"}
 

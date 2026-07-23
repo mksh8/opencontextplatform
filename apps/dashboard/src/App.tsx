@@ -74,14 +74,11 @@ import IngestionTelemetry from './pages/ingestion/IngestionTelemetry';
 import Memories from './pages/Memories';
 import Search from './pages/Search';
 import Timeline from './pages/Timeline';
-import Connectors from './pages/Connectors';
 import Providers from './pages/Providers';
 import Settings from './pages/Settings';
 import SecuritySSO from './pages/SecuritySSO';
 import Workspace from './pages/Workspace';
-import GraphExplorer from './pages/GraphExplorer';
 import IngestionJobs from './pages/IngestionJobs';
-import Sources from './pages/Sources';
 import Webhooks from './pages/Webhooks';
 import Models from './pages/Models';
 import APIKeys from './pages/APIKeys';
@@ -122,6 +119,18 @@ import TenantAPIKeys from './pages/TenantAPIKeys';
 import TenantPolicies from './pages/TenantPolicies';
 import TenantQuota from './pages/TenantQuota';
 import TenantMonitoring from './pages/TenantMonitoring';
+import {
+  CatalogPage,
+  ContextEnginePage,
+  DatasourcesPage,
+  DocumentsPage,
+  KnowledgeGraphPage,
+  MemoryPage,
+  OntologyPage,
+  PipelinesPage,
+  ProjectsPage,
+  WorkspaceConnectorsPage,
+} from './pages/WorkspaceConsolePages';
 
 import { ToastProvider } from './contexts/ToastContext';
 import { AuthProvider } from './contexts/AuthContext';
@@ -141,6 +150,7 @@ export default function App() {
         <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
           <Route index element={<Navigate to="/overview" replace />} />
           <Route path="overview" element={<Dashboard />} />
+          <Route path="projects" element={<ProjectsPage />} />
           <Route path="dashboard/executive" element={<ExecutiveDashboard />} />
           <Route path="dashboard/ai-activity" element={<AIActivityDashboard />} />
           <Route path="dashboard/context-health" element={<ContextHealth />} />
@@ -201,7 +211,18 @@ export default function App() {
           <Route path="ingestion/webhooks" element={<IngestionWebhooks />} />
           <Route path="ingestion/telemetry" element={<IngestionTelemetry />} />
           
-          <Route path="memories" element={<Memories />} />
+          <Route path="catalog" element={<CatalogPage />} />
+          <Route path="datasources" element={<DatasourcesPage />} />
+          <Route path="sources" element={<DatasourcesPage />} />
+          <Route path="connectors" element={<WorkspaceConnectorsPage />} />
+          <Route path="pipelines" element={<PipelinesPage />} />
+          <Route path="documents" element={<DocumentsPage />} />
+          <Route path="memory" element={<MemoryPage />} />
+          <Route path="memories" element={<MemoryPage />} />
+          <Route path="ontology" element={<OntologyPage />} />
+          <Route path="context-engine" element={<ContextEnginePage />} />
+          <Route path="graph" element={<KnowledgeGraphPage />} />
+          <Route path="memories/legacy" element={<Memories />} />
           <Route path="timeline" element={<Timeline />} />
           <Route path="providers" element={<TenantAIProviders />} />
           <Route path="tenant/providers" element={<TenantAIProviders />} />
@@ -209,8 +230,6 @@ export default function App() {
           <Route path="settings" element={<Settings />} />
           <Route path="settings/sso" element={<SecuritySSO />} />
           <Route path="workspace" element={<Workspace />} />
-          <Route path="graph" element={<GraphExplorer />} />
-          <Route path="sources" element={<Sources />} />
           <Route path="models" element={<Models />} />
           <Route path="apikeys" element={<TenantAPIKeys />} />
           <Route path="tenant/apikeys" element={<TenantAPIKeys />} />

@@ -1,10 +1,16 @@
+"""Scheduler schema ORM models for job definitions, runs, and background tasks."""
+
 import uuid
-from sqlalchemy import Column, String, Text, ForeignKey, Boolean, SmallInteger, DateTime
-from sqlalchemy.dialects.postgresql import UUID, JSONB
+
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, SmallInteger, String, Text
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.sql import func
+
 from runtime.models.base import Base
 
+
 class JobDefinition(Base):
+    """ORM model for cron job definitions."""
     __tablename__ = "job_definitions"
     __table_args__ = {"schema": "scheduler"}
 
@@ -19,11 +25,15 @@ class JobDefinition(Base):
 
 
 class JobRun(Base):
+    """ORM model for scheduled job execution runs."""
     __tablename__ = "job_runs"
     __table_args__ = {"schema": "scheduler"}
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    job_definition_id = Column(UUID(as_uuid=True), ForeignKey("scheduler.job_definitions.id", ondelete="CASCADE"))
+    job_definition_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("scheduler.job_definitions.id", ondelete="CASCADE"),
+    )
     status = Column(String(30), index=True)
     started_at = Column(DateTime(timezone=True), server_default=func.now())
     completed_at = Column(DateTime(timezone=True))
@@ -32,6 +42,7 @@ class JobRun(Base):
 
 
 class BackgroundTask(Base):
+    """ORM model for asynchronous background worker tasks."""
     __tablename__ = "background_tasks"
     __table_args__ = {"schema": "scheduler"}
 

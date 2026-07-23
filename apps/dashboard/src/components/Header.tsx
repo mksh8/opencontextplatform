@@ -1,11 +1,23 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useToast } from '../contexts/ToastContext';
+import {
+  Bell,
+  Building2,
+  ChevronDown,
+  Folder,
+  HelpCircle,
+  Rocket,
+  Search,
+  Shield,
+  Shuffle,
+} from 'lucide-react';
 
 export default function Header() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const { addToast } = useToast();
   const [theme, setTheme] = useState<'dark' | 'light' | 'system'>('dark');
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -54,35 +66,71 @@ export default function Header() {
       navigate('/search/universal');
     }
   };
+
+  const placeholder = (() => {
+    if (location.pathname.includes('catalog')) return 'Search catalog...';
+    if (location.pathname.includes('datasources') || location.pathname.includes('sources')) return 'Search datasources...';
+    if (location.pathname.includes('connectors')) return 'Search connectors...';
+    if (location.pathname.includes('pipelines')) return 'Search pipelines...';
+    if (location.pathname.includes('documents')) return 'Search documents...';
+    if (location.pathname.includes('memory')) return 'Search memory...';
+    if (location.pathname.includes('graph')) return 'Search knowledge graph...';
+    if (location.pathname.includes('ontology')) return 'Search ontology...';
+    if (location.pathname.includes('contexts')) return 'Search across context engine...';
+    return 'Search anything...';
+  })();
+
   return (
     <header className="top-header">
-      <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
-        <span style={{ fontSize: 24, cursor: 'pointer', color: 'var(--text-secondary)' }} onClick={() => addToast('Sidebar toggle functionality coming soon!', 'info')}>≡</span>
-        <input 
+      <div className="header-context-switcher">
+        <button>
+          <small>Organization</small>
+          <span><Building2 size={16} />Acme Corporation</span>
+        </button>
+        <i />
+        <button>
+          <small>Workspace</small>
+          <span><Folder size={16} />Data Platform Team</span>
+        </button>
+        <i />
+        <button>
+          <small>Project</small>
+          <span><Rocket size={16} />Customer360<ChevronDown size={14} /></span>
+        </button>
+      </div>
+      <button className="header-switch"><Shuffle size={16} />Switch Context</button>
+      <div className="header-search">
+        <Search size={18} />
+        <input
           ref={searchInputRef}
-          type="text" 
-          className="search-bar" 
-          placeholder="🔍 Search anything... (⌘ K)" 
+          type="text"
+          placeholder={placeholder}
           onKeyDown={handleSearch}
         />
+        <kbd>{navigator.platform.includes('Mac') ? '⌘' : 'Ctrl'} K</kbd>
       </div>
       <div className="header-actions">
-        <span style={{ fontSize: 13, fontWeight: 500, cursor: 'pointer' }} onClick={() => window.open('http://localhost:8000/docs', '_blank')}>📄 Docs</span>
-        <span style={{ fontSize: 13, fontWeight: 500, cursor: 'pointer' }} onClick={() => navigate('/apiplayground')}>⚡ API</span>
-        <span style={{ cursor: 'pointer' }} onClick={toggleTheme} title={`Current theme: ${theme}`}>
-          {theme === 'dark' ? '🌙' : theme === 'light' ? '☀️' : '💻'}
-        </span>
-        <span style={{ cursor: 'pointer' }} onClick={() => addToast('No new notifications', 'info')}>🔔</span>
+        <button className="header-icon" onClick={toggleTheme} title={`Current theme: ${theme}`}>
+          <Shield size={17} />
+        </button>
+        <button className="header-icon" onClick={() => window.open('http://localhost:8000/docs', '_blank')} title="Documentation">
+          <HelpCircle size={17} />
+        </button>
+        <button className="header-icon has-badge" onClick={() => addToast('No new notifications', 'info')} title="Notifications">
+          <Bell size={18} />
+          <span>12</span>
+        </button>
         <div className="profile-badge" onClick={() => {
           if(window.confirm('Are you sure you want to log out?')) {
             logout();
           }
         }} style={{ cursor: 'pointer' }}>
-          <img src={user?.avatar_url || `https://ui-avatars.com/api/?name=${user?.full_name || 'User'}&background=10b981&color=fff`} style={{ width: 36, height: 36, borderRadius: '50%' }} alt="Profile" />
+          <img src={user?.avatar_url || `https://ui-avatars.com/api/?name=${user?.full_name || 'Mukesh Kumar'}&background=0f7bdc&color=fff`} style={{ width: 42, height: 42, borderRadius: '50%' }} alt="Profile" />
           <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <span style={{ fontSize: 13, color: '#fff', fontWeight: 500 }}>{user?.full_name || 'User'}</span>
-            <span style={{ fontSize: 11, color: 'var(--text-secondary)' }}>{user?.email || 'user@example.com'}</span>
+            <span style={{ fontSize: 13, color: '#fff', fontWeight: 700 }}>{user?.full_name || 'Mukesh Kumar'}</span>
+            <span style={{ fontSize: 11, color: 'var(--text-secondary)' }}>{user?.role_name || user?.role || 'Platform Admin'}</span>
           </div>
+          <ChevronDown size={14} />
         </div>
       </div>
     </header>

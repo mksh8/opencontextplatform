@@ -1,10 +1,16 @@
+"""Context schema ORM models for context profiles, templates, policies, and sessions."""
+
 import uuid
-from sqlalchemy import Column, String, Text, ForeignKey, Integer, DateTime
-from sqlalchemy.dialects.postgresql import UUID, JSONB
+
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, Text
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.sql import func
+
 from runtime.models.base import Base
 
+
 class ContextProfile(Base):
+    """ORM model for context profiles."""
     __tablename__ = "context_profiles"
     __table_args__ = {"schema": "context"}
 
@@ -17,17 +23,22 @@ class ContextProfile(Base):
 
 
 class ContextTemplate(Base):
+    """ORM model for context assembly templates."""
     __tablename__ = "context_templates"
     __table_args__ = {"schema": "context"}
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    profile_id = Column(UUID(as_uuid=True), ForeignKey("context.context_profiles.id", ondelete="CASCADE"))
+    profile_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("context.context_profiles.id", ondelete="CASCADE"),
+    )
     name = Column(String(255))
     template = Column(JSONB, nullable=False)
     version = Column(Integer, default=1)
 
 
 class ContextPolicy(Base):
+    """ORM model for context token & retention policies."""
     __tablename__ = "context_policies"
     __table_args__ = {"schema": "context"}
 
@@ -41,6 +52,7 @@ class ContextPolicy(Base):
 
 
 class ContextSession(Base):
+    """ORM model for runtime context sessions."""
     __tablename__ = "context_sessions"
     __table_args__ = {"schema": "context"}
 

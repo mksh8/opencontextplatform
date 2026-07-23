@@ -1,10 +1,16 @@
+"""Monitoring schema ORM models for events, metrics, distributed traces, and LLM usage telemetry."""
+
 import uuid
-from sqlalchemy import Column, String, ForeignKey, Integer, Numeric, DateTime
-from sqlalchemy.dialects.postgresql import UUID, JSONB
+
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, Numeric, String
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.sql import func
+
 from runtime.models.base import Base
 
+
 class Event(Base):
+    """ORM model for system monitoring events."""
     __tablename__ = "events"
     __table_args__ = {"schema": "monitoring"}
 
@@ -18,6 +24,7 @@ class Event(Base):
 
 
 class Metric(Base):
+    """ORM model for time-series metrics."""
     __tablename__ = "metrics"
     __table_args__ = {"schema": "monitoring"}
 
@@ -30,6 +37,7 @@ class Metric(Base):
 
 
 class Trace(Base):
+    """ORM model for distributed OpenTelemetry traces."""
     __tablename__ = "traces"
     __table_args__ = {"schema": "monitoring"}
 
@@ -45,12 +53,15 @@ class Trace(Base):
 
 
 class LLMUsage(Base):
+    """ORM model for detailed LLM token and cost telemetry."""
     __tablename__ = "llm_usage"
     __table_args__ = {"schema": "monitoring"}
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     agent_run_id = Column(UUID(as_uuid=True), ForeignKey("agent.agent_runs.id"))
-    provider_config_id = Column(UUID(as_uuid=True), ForeignKey("provider.provider_configs.id"))
+    provider_config_id = Column(
+        UUID(as_uuid=True), ForeignKey("provider.provider_configs.id")
+    )
     model_name = Column(String(255), index=True)
     prompt_tokens = Column(Integer)
     completion_tokens = Column(Integer)

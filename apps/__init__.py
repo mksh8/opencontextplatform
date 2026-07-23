@@ -1,1 +1,1 @@
-# Make apps a package
+"""OpenContextPlatform applications package."""

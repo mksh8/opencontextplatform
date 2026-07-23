@@ -1,10 +1,16 @@
+"""Agent schema ORM models for agents, versions, tools, skills, runs, and logs."""
+
 import uuid
-from sqlalchemy import Column, String, Text, ForeignKey, Integer, Boolean, Numeric, DateTime
-from sqlalchemy.dialects.postgresql import UUID, JSONB
+
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, Numeric, String, Text
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.sql import func
+
 from runtime.models.base import Base
 
+
 class Agent(Base):
+    """ORM model for agents."""
     __tablename__ = "agents"
     __table_args__ = {"schema": "agent"}
 
@@ -20,11 +26,14 @@ class Agent(Base):
 
 
 class AgentVersion(Base):
+    """ORM model for agent versioning."""
     __tablename__ = "agent_versions"
     __table_args__ = {"schema": "agent"}
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    agent_id = Column(UUID(as_uuid=True), ForeignKey("agent.agents.id", ondelete="CASCADE"), nullable=False)
+    agent_id = Column(
+        UUID(as_uuid=True), ForeignKey("agent.agents.id", ondelete="CASCADE"), nullable=False
+    )
     version = Column(Integer, nullable=False)
     description = Column(Text)
     graph_definition = Column(JSONB)
@@ -33,6 +42,7 @@ class AgentVersion(Base):
 
 
 class Tool(Base):
+    """ORM model for agent tools."""
     __tablename__ = "tools"
     __table_args__ = {"schema": "agent"}
 
@@ -46,15 +56,25 @@ class Tool(Base):
 
 
 class AgentTool(Base):
+    """ORM model for agent tool associations."""
     __tablename__ = "agent_tools"
     __table_args__ = {"schema": "agent"}
 
-    agent_version_id = Column(UUID(as_uuid=True), ForeignKey("agent.agent_versions.id", ondelete="CASCADE"), primary_key=True)
-    tool_id = Column(UUID(as_uuid=True), ForeignKey("agent.tools.id", ondelete="CASCADE"), primary_key=True)
+    agent_version_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("agent.agent_versions.id", ondelete="CASCADE"),
+        primary_key=True,
+    )
+    tool_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("agent.tools.id", ondelete="CASCADE"),
+        primary_key=True,
+    )
     required = Column(Boolean, default=False)
 
 
 class Skill(Base):
+    """ORM model for agent skills."""
     __tablename__ = "skills"
     __table_args__ = {"schema": "agent"}
 
@@ -66,14 +86,24 @@ class Skill(Base):
 
 
 class AgentSkill(Base):
+    """ORM model for agent skill associations."""
     __tablename__ = "agent_skills"
     __table_args__ = {"schema": "agent"}
 
-    agent_version_id = Column(UUID(as_uuid=True), ForeignKey("agent.agent_versions.id", ondelete="CASCADE"), primary_key=True)
-    skill_id = Column(UUID(as_uuid=True), ForeignKey("agent.skills.id", ondelete="CASCADE"), primary_key=True)
+    agent_version_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("agent.agent_versions.id", ondelete="CASCADE"),
+        primary_key=True,
+    )
+    skill_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("agent.skills.id", ondelete="CASCADE"),
+        primary_key=True,
+    )
 
 
 class AgentRun(Base):
+    """ORM model for agent execution runs."""
     __tablename__ = "agent_runs"
     __table_args__ = {"schema": "agent"}
 
@@ -90,11 +120,14 @@ class AgentRun(Base):
 
 
 class AgentLog(Base):
+    """ORM model for agent execution logs."""
     __tablename__ = "agent_logs"
     __table_args__ = {"schema": "agent"}
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    agent_run_id = Column(UUID(as_uuid=True), ForeignKey("agent.agent_runs.id", ondelete="CASCADE"))
+    agent_run_id = Column(
+        UUID(as_uuid=True), ForeignKey("agent.agent_runs.id", ondelete="CASCADE")
+    )
     log_level = Column(String(20))
     message = Column(Text)
     event_time = Column(DateTime(timezone=True), server_default=func.now())

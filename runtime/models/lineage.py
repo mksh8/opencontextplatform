@@ -1,15 +1,23 @@
+"""Lineage schema ORM models for lineage jobs, snapshots, and metadata versions."""
+
 import uuid
-from sqlalchemy import Column, String, Text, ForeignKey, Integer, DateTime
-from sqlalchemy.dialects.postgresql import UUID, JSONB
+
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, Text
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.sql import func
+
 from runtime.models.base import Base
 
+
 class LineageJob(Base):
+    """ORM model for data lineage extraction jobs."""
     __tablename__ = "lineage_jobs"
     __table_args__ = {"schema": "lineage"}
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    workspace_id = Column(UUID(as_uuid=True), ForeignKey("workspace.workspaces.id"), nullable=False)
+    workspace_id = Column(
+        UUID(as_uuid=True), ForeignKey("workspace.workspaces.id"), nullable=False
+    )
     datasource_id = Column(UUID(as_uuid=True), ForeignKey("datasource.datasources.id"))
     job_name = Column(String(255), nullable=False)
     engine = Column(String(100))
@@ -20,11 +28,14 @@ class LineageJob(Base):
 
 
 class LineageSnapshot(Base):
+    """ORM model for lineage graph version snapshots."""
     __tablename__ = "lineage_snapshots"
     __table_args__ = {"schema": "lineage"}
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    lineage_job_id = Column(UUID(as_uuid=True), ForeignKey("lineage.lineage_jobs.id", ondelete="CASCADE"))
+    lineage_job_id = Column(
+        UUID(as_uuid=True), ForeignKey("lineage.lineage_jobs.id", ondelete="CASCADE")
+    )
     snapshot_version = Column(Integer, nullable=False)
     graph_hash = Column(String(128))
     snapshot_data = Column(JSONB, nullable=False)
@@ -32,6 +43,7 @@ class LineageSnapshot(Base):
 
 
 class MetadataVersion(Base):
+    """ORM model for tracking catalog entity metadata revisions."""
     __tablename__ = "metadata_versions"
     __table_args__ = {"schema": "lineage"}
 

@@ -1,10 +1,16 @@
+"""Billing schema ORM models for plans, subscriptions, licenses, metrics, and invoices."""
+
 import uuid
-from sqlalchemy import Column, String, ForeignKey, Boolean, Numeric, DateTime
-from sqlalchemy.dialects.postgresql import UUID, JSONB
+
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Numeric, String
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.sql import func
+
 from runtime.models.base import Base
 
+
 class Plan(Base):
+    """ORM model for subscription plans."""
     __tablename__ = "plans"
     __table_args__ = {"schema": "billing"}
 
@@ -20,6 +26,7 @@ class Plan(Base):
 
 
 class Subscription(Base):
+    """ORM model for tenant subscriptions."""
     __tablename__ = "subscriptions"
     __table_args__ = {"schema": "billing"}
 
@@ -33,17 +40,21 @@ class Subscription(Base):
 
 
 class License(Base):
+    """ORM model for software licenses."""
     __tablename__ = "licenses"
     __table_args__ = {"schema": "billing"}
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    subscription_id = Column(UUID(as_uuid=True), ForeignKey("billing.subscriptions.id", ondelete="CASCADE"))
+    subscription_id = Column(
+        UUID(as_uuid=True), ForeignKey("billing.subscriptions.id", ondelete="CASCADE")
+    )
     license_key = Column(String(255), unique=True, nullable=False)
     seat_limit = Column(Numeric)
     expires_at = Column(DateTime(timezone=True))
 
 
 class UsageMetric(Base):
+    """ORM model for raw billing usage metrics."""
     __tablename__ = "usage_metrics"
     __table_args__ = {"schema": "billing"}
 
@@ -56,6 +67,7 @@ class UsageMetric(Base):
 
 
 class Invoice(Base):
+    """ORM model for subscription invoices."""
     __tablename__ = "invoices"
     __table_args__ = {"schema": "billing"}
 

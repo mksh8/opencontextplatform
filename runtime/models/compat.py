@@ -1,11 +1,18 @@
-import uuid
+"""Compatibility ORM models for legacy API keys, billing events, and audit logs."""
+
 from datetime import datetime
-from sqlalchemy import Column, String, Integer, Text, ForeignKey, JSON, DateTime, Boolean
+import uuid
+
+from sqlalchemy import JSON, Boolean, Column, DateTime, Integer, String
+
 from runtime.models.base import Base
 
+
 class ApiKey(Base):
+    """Legacy ApiKey compatibility ORM model."""
     __tablename__ = "api_keys"
     __table_args__ = {"schema": "system"}
+
     id = Column(String, primary_key=True, index=True, default=lambda: str(uuid.uuid4()))
     tenant_id = Column(String, index=True)
     name = Column(String)
@@ -15,18 +22,24 @@ class ApiKey(Base):
     last_used = Column(DateTime, nullable=True)
     is_active = Column(Boolean, default=True)
 
+
 class BillingEvent(Base):
+    """Legacy BillingEvent compatibility ORM model."""
     __tablename__ = "billing_events"
     __table_args__ = {"schema": "system"}
+
     id = Column(String, primary_key=True, index=True, default=lambda: str(uuid.uuid4()))
     tenant_id = Column(String, index=True)
     metric = Column(String, index=True)  # e.g., 'tokens', 'storage', 'queries'
     quantity = Column(Integer, default=0)
     timestamp = Column(DateTime, default=datetime.utcnow)
 
+
 class AuditLogEntry(Base):
+    """Legacy AuditLogEntry compatibility ORM model."""
     __tablename__ = "audit_logs"
     __table_args__ = {"schema": "system"}
+
     id = Column(String, primary_key=True, index=True, default=lambda: str(uuid.uuid4()))
     tenant_id = Column(String, index=True)
     actor = Column(String)
