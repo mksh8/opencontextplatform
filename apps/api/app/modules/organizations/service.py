@@ -12,9 +12,12 @@ from apps.api.app.modules.organizations.schemas import (
 
 class OrganizationService:
     def create_organization(self, request: OrganizationCreateRequest) -> OrganizationResponse:
-        """Creates a new organization and default tenant."""
+        """Creates a new organization, default tenant, default workspace, and owner."""
+        import bcrypt
+        from runtime.models import Role, RoleAssignment
         db = SessionLocal()
         try:
+            # 1. Create Organization
             org_id = uuid.uuid4()
             org = Organization(
                 id=org_id,
@@ -26,7 +29,7 @@ class OrganizationService:
                 industry=request.industry
             )
             
-            # Must also create a default tenant for the organization because RBAC depends on it
+            # 2. Create Default Tenant
             tenant_id = uuid.uuid4()
             tenant = Tenant(
                 id=tenant_id,
@@ -35,8 +38,47 @@ class OrganizationService:
                 name="Default Tenant"
             )
             
+            # 3. Create Default Workspace
+            workspace_id = uuid.uuid4()
+            workspace = Workspace(
+                id=workspace_id,
+                tenant_id=tenant_id,
+                name="Default Workspace",
+                slug=f"ws_{workspace_id.hex[:8]}"
+            )
+            
+            # 4. Find or Create Organization Owner
+            user = db.query(User).filter(User.email == request.owner_email).first()
+            if not user:
+                user_id = uuid.uuid4()
+                default_password = "ChangeMe123!"
+                hashed_password = bcrypt.hashpw(default_password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
+                
+                user = User(
+                    id=user_id,
+                    email=request.owner_email,
+                    full_name=request.owner_name,
+                    password_hash=hashed_password,
+                    status="INVITED"
+                )
+                db.add(user)
+            
             db.add(org)
             db.add(tenant)
+            db.add(workspace)
+            db.flush() # get IDs
+            
+            # 5. Assign Role
+            org_owner_role = db.query(Role).filter_by(name="Organization Owner").first()
+            if org_owner_role:
+                role_assignment = RoleAssignment(
+                    user_id=user.id,
+                    role_id=org_owner_role.id,
+                    scope_type="ORGANIZATION",
+                    scope_id=org.id
+                )
+                db.add(role_assignment)
+            
             db.commit()
             
             return OrganizationResponse(
@@ -48,20 +90,25 @@ class OrganizationService:
                 description=org.description,
                 website=org.website,
                 industry=org.industry,
-                workspaces=[],
-                member_count=0,
+                workspaces=[{"id": str(workspace.id), "name": workspace.name, "role": "Owner"}],
+                tenant_count=1,
+                member_count=1,
                 status="ACTIVE",
                 created_at=datetime.datetime.now().strftime("%b %d, %Y")
             )
+        except Exception as e:
+            db.rollback()
+            raise e
         finally:
             db.close()
 
     def get_user_organizations(self, user_id: str = None) -> List[OrganizationResponse]:
-        """Returns organizations from the database."""
+        """Returns organizations from the database, counting members via role assignments."""
+        from runtime.models import RoleAssignment, Role
         db = SessionLocal()
         try:
-            # In a fully authenticated flow, we would filter by the user's tenants.
-            # For now, we return all organizations for the dashboard.
+            # For this dashboard implementation, we return all organizations.
+            # In production, filter by user_id and scope_type="ORGANIZATION"
             orgs = db.query(Organization).all()
             
             result = []
@@ -75,13 +122,14 @@ class OrganizationService:
                         workspaces_data.append({
                             "id": str(ws.id),
                             "name": ws.name,
-                            "role": "Owner"  # Using Owner as default for now
+                            "role": "Owner" 
                         })
                 
-                
-                # Fetch members logic
-                tenant_ids = [t.id for t in tenants]
-                member_count = db.query(User).filter(User.tenant_id.in_(tenant_ids)).count() if tenant_ids else 0
+                # Fetch members logic using RoleAssignment
+                member_count = db.query(RoleAssignment).filter(
+                    RoleAssignment.scope_type == "ORGANIZATION",
+                    RoleAssignment.scope_id == org.id
+                ).count()
                 
                 result.append(
                     OrganizationResponse(
@@ -94,74 +142,119 @@ class OrganizationService:
                         website=org.website,
                         industry=org.industry,
                         workspaces=workspaces_data,
+                        tenant_count=len(tenants),
                         member_count=member_count,
                         status=org.status or "ACTIVE",
                         created_at=org.created_at.strftime("%b %d, %Y") if org.created_at else datetime.datetime.now().strftime("%b %d, %Y")
                     )
                 )
             
-            # If no orgs exist yet, return a mock to prevent empty dashboard
-            if not result:
-                return [
-                    OrganizationResponse(
-                        id="org_alpha_123",
-                        name="Alpha Corp",
-                        slug="alpha-corp",
-                        plan="Enterprise",
-                        display_name="Alpha Corporation",
-                        description="Default organization",
-                        website="alpha.example.com",
-                        industry="Technology",
-                        workspaces=[
-                            {"id": "ws_1", "name": "Engineering Core", "role": "Owner"}
-                        ],
-                        member_count=1,
-                        status="ACTIVE",
-                        created_at=datetime.datetime.now().strftime("%b %d, %Y")
-                    )
-                ]
-                
             return result
         finally:
             db.close()
 
     def get_organization_members(self, org_id: str) -> List[MemberResponse]:
-        """Returns all members of a specific organization."""
+        """Returns all members of a specific organization using RoleAssignments."""
+        from runtime.models import RoleAssignment, Role
         db = SessionLocal()
         try:
-            # Handle mock org_id fallback gracefully
-            if org_id == "org_alpha_123":
-                return [
-                    MemberResponse(
-                        id="user_001",
-                        name="Mukesh Kumar",
-                        email="mukesh@example.com",
-                        role="Owner",
-                        status="Active",
-                        last_active="2m ago"
-                    )
-                ]
-                
-            tenants = db.query(Tenant).filter(Tenant.organization_id == org_id).all()
-            tenant_ids = [t.id for t in tenants]
+            # Query role assignments scoped to this organization
+            assignments = db.query(RoleAssignment, User, Role).join(
+                User, RoleAssignment.user_id == User.id
+            ).join(
+                Role, RoleAssignment.role_id == Role.id
+            ).filter(
+                RoleAssignment.scope_type == "ORGANIZATION",
+                RoleAssignment.scope_id == org_id
+            ).all()
             
-            if not tenant_ids:
+            if not assignments:
                 return []
                 
-            users = db.query(User).filter(User.tenant_id.in_(tenant_ids)).all()
-            
             return [
                 MemberResponse(
-                    id=str(u.id),
-                    name=u.full_name or u.email,
-                    email=u.email,
-                    role=u.role_name.capitalize() if getattr(u, 'role_name', None) else "Member",
-                    status="Active",
+                    id=str(user.id),
+                    name=user.full_name or user.email,
+                    email=user.email,
+                    role=role.name,
+                    status=user.status or "Active",
                     last_active="Active"
-                ) for u in users
+                ) for assignment, user, role in assignments
             ]
         finally:
             db.close()
 
+    def get_organization_tenants(self, org_id: str) -> List['TenantResponse']:
+        """Returns all tenants belonging to a specific organization."""
+        from apps.api.app.modules.organizations.schemas import TenantResponse
+        db = SessionLocal()
+        try:
+            tenants = db.query(Tenant).filter(Tenant.organization_id == org_id).all()
+            return [
+                TenantResponse(
+                    id=str(tenant.id),
+                    name=tenant.name,
+                    code=tenant.code,
+                    status=tenant.status or "ACTIVE",
+                    created_at=tenant.created_at.strftime("%b %d, %Y") if tenant.created_at else datetime.datetime.now().strftime("%b %d, %Y")
+                ) for tenant in tenants
+            ]
+        finally:
+            db.close()
+
+    def update_organization_status(self, org_id: str, status: str) -> OrganizationResponse:
+        """Updates the status of an organization."""
+        from fastapi import HTTPException
+        db = SessionLocal()
+        try:
+            org = db.query(Organization).filter(Organization.id == org_id).first()
+            if not org:
+                raise HTTPException(status_code=404, detail="Organization not found")
+                
+            org.status = status
+            db.commit()
+            
+            # Fetch for response
+            return self._build_org_response(org, db)
+        except Exception as e:
+            db.rollback()
+            raise e
+        finally:
+            db.close()
+            
+    def _build_org_response(self, org: Organization, db) -> OrganizationResponse:
+        from runtime.models import RoleAssignment
+        tenants = db.query(Tenant).filter(Tenant.organization_id == org.id).all()
+        workspaces_data = []
+        for tenant in tenants:
+            workspaces = db.query(Workspace).filter(Workspace.tenant_id == tenant.id).all()
+            for ws in workspaces:
+                workspaces_data.append({
+                    "id": str(ws.id),
+                    "name": ws.name,
+                    "role": "Owner" 
+                })
+        
+        member_count = db.query(RoleAssignment).filter(
+            RoleAssignment.scope_type == "ORGANIZATION",
+            RoleAssignment.scope_id == org.id
+        ).count()
+        
+        return OrganizationResponse(
+            id=str(org.id),
+            name=org.name,
+            slug=org.code,
+            plan="Enterprise",
+            display_name=org.display_name,
+            description=org.description,
+            website=org.website,
+            industry=org.industry,
+            workspaces=workspaces_data,
+            tenant_count=len(tenants),
+            member_count=member_count,
+            status=org.status or "ACTIVE",
+            created_at=org.created_at.strftime("%b %d, %Y") if org.created_at else datetime.datetime.now().strftime("%b %d, %Y")
+        )
 
 organization_service = OrganizationService()
+

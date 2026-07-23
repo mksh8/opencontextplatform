@@ -16,10 +16,12 @@ from apps.api.app.api.v1.apikeys.router import router as apikeys_router
 from apps.api.app.api.v1.roles.router import router as roles_router
 from apps.api.app.api.v1.auditlogs.router import router as auditlogs_router
 from apps.api.app.api.v1.scim.router import router as scim_router
+from apps.api.app.api.v1.users.router import router as users_router
 
 v1_router = APIRouter()
 
 v1_router.include_router(auth_router)
+v1_router.include_router(users_router)
 v1_router.include_router(organizations_router)
 v1_router.include_router(contexts_router)
 v1_router.include_router(metrics_router)

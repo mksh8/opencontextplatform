@@ -5,6 +5,7 @@ from runtime.models.base import Base
 
 class ApiKey(Base):
     __tablename__ = "api_keys"
+    __table_args__ = {"schema": "system"}
     id = Column(String, primary_key=True, index=True, default=lambda: str(uuid.uuid4()))
     tenant_id = Column(String, index=True)
     name = Column(String)
@@ -16,6 +17,7 @@ class ApiKey(Base):
 
 class BillingEvent(Base):
     __tablename__ = "billing_events"
+    __table_args__ = {"schema": "system"}
     id = Column(String, primary_key=True, index=True, default=lambda: str(uuid.uuid4()))
     tenant_id = Column(String, index=True)
     metric = Column(String, index=True)  # e.g., 'tokens', 'storage', 'queries'
@@ -24,6 +26,7 @@ class BillingEvent(Base):
 
 class AuditLogEntry(Base):
     __tablename__ = "audit_logs"
+    __table_args__ = {"schema": "system"}
     id = Column(String, primary_key=True, index=True, default=lambda: str(uuid.uuid4()))
     tenant_id = Column(String, index=True)
     actor = Column(String)

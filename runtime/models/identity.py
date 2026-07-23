@@ -41,20 +41,16 @@ class User(Base):
     __table_args__ = {"schema": "identity"}
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    tenant_id = Column(UUID(as_uuid=True), ForeignKey("identity.tenants.id"), nullable=False)
-    email = Column(String(320), nullable=False, index=True)
+    email = Column(String(320), nullable=False, unique=True, index=True)
     password_hash = Column(Text, nullable=False)
     first_name = Column(String(100))
     last_name = Column(String(100))
     display_name = Column(String(255))
+    full_name = Column(String(255))
     status = Column(String(30), default="ACTIVE")
     metadata_json = Column("metadata", JSONB, default=dict)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
-    
-    # Adding role_name for backwards compatibility during transition
-    role_name = Column(String, default="viewer")
-    full_name = Column(String)
 
 
 class Role(Base):
@@ -62,8 +58,7 @@ class Role(Base):
     __table_args__ = {"schema": "identity"}
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    tenant_id = Column(UUID(as_uuid=True), ForeignKey("identity.tenants.id"), nullable=False)
-    name = Column(String(100), nullable=False)
+    name = Column(String(100), nullable=False, unique=True)
     description = Column(Text)
 
 
@@ -86,9 +81,13 @@ class RolePermission(Base):
     permission_id = Column(UUID(as_uuid=True), ForeignKey("identity.permissions.id", ondelete="CASCADE"), primary_key=True)
 
 
-class UserRole(Base):
-    __tablename__ = "user_roles"
+class RoleAssignment(Base):
+    __tablename__ = "role_assignments"
     __table_args__ = {"schema": "identity"}
 
-    user_id = Column(UUID(as_uuid=True), ForeignKey("identity.users.id", ondelete="CASCADE"), primary_key=True)
-    role_id = Column(UUID(as_uuid=True), ForeignKey("identity.roles.id", ondelete="CASCADE"), primary_key=True)
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("identity.users.id", ondelete="CASCADE"), nullable=False)
+    role_id = Column(UUID(as_uuid=True), ForeignKey("identity.roles.id", ondelete="CASCADE"), nullable=False)
+    scope_type = Column(String(50), nullable=False)
+    scope_id = Column(UUID(as_uuid=True), nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())

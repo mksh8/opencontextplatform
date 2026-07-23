@@ -173,3 +173,41 @@ ON secrets.secret_access_logs(accessed_at);
 
 CREATE INDEX idx_system_health_component
 ON system.system_health(component_name);
+
+-- ==========================================================
+-- COMPATIBILITY / CROSS-CUTTING (Legacy Migrated)
+-- ==========================================================
+
+CREATE TABLE system.audit_logs (
+    id VARCHAR(50) PRIMARY KEY,
+    tenant_id VARCHAR(50),
+    actor VARCHAR(255),
+    action VARCHAR(255),
+    target VARCHAR(255),
+    status VARCHAR(50),
+    details JSONB,
+    timestamp TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE TABLE system.api_keys (
+    id VARCHAR(50) PRIMARY KEY,
+    tenant_id VARCHAR(50),
+    name VARCHAR(255),
+    key_hash VARCHAR(255),
+    prefix VARCHAR(50),
+    created_at TIMESTAMPTZ DEFAULT now(),
+    last_used TIMESTAMPTZ,
+    is_active BOOLEAN DEFAULT TRUE
+);
+
+CREATE TABLE system.billing_events (
+    id VARCHAR(50) PRIMARY KEY,
+    tenant_id VARCHAR(50),
+    metric VARCHAR(100),
+    quantity INTEGER DEFAULT 0,
+    timestamp TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE INDEX idx_audit_logs_tenant ON system.audit_logs(tenant_id);
+CREATE INDEX idx_api_keys_tenant ON system.api_keys(tenant_id);
+CREATE INDEX idx_billing_events_tenant ON system.billing_events(tenant_id);

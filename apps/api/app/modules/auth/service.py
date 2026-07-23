@@ -10,7 +10,7 @@ from apps.api.app.modules.auth.schemas import (
     TokenResponse
 )
 from sqlalchemy.orm import Session
-from runtime.models import User, Tenant, Organization
+from runtime.models import User, Tenant, Organization, RoleAssignment, Role
 
 SECRET_KEY = "super_secret_opencontext_key_for_jwt" # In production, load from env
 ALGORITHM = "HS256"
@@ -48,13 +48,22 @@ class AuthService:
         except ValueError:
             raise ValueError("Invalid credentials")
 
+        # Get primary role for UI
+        role_assignment = db.query(RoleAssignment).filter(RoleAssignment.user_id == user_record.id).first()
+        role_name = None
+        if role_assignment:
+            role_record = db.query(Role).filter(Role.id == role_assignment.role_id).first()
+            if role_record:
+                role_name = role_record.name
+
         token = self._create_access_token(data={"sub": user_record.email, "id": str(user_record.id)})
         
         user_profile = UserProfile(
             id=str(user_record.id),
             email=user_record.email,
             full_name=user_record.full_name or "User",
-            avatar_url=f"https://ui-avatars.com/api/?name={(user_record.full_name or 'User').replace(' ', '+')}&background=random"
+            avatar_url=f"https://ui-avatars.com/api/?name={(user_record.full_name or 'User').replace(' ', '+')}&background=random",
+            role_name=role_name
         )
         return TokenResponse(access_token=token, user=user_profile)
 

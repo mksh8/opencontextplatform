@@ -33,26 +33,21 @@ CREATE TABLE identity.tenants(
 
 CREATE TABLE identity.users(
  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
- tenant_id UUID NOT NULL REFERENCES identity.tenants(id),
- email VARCHAR(320) NOT NULL,
+ email VARCHAR(320) UNIQUE NOT NULL,
  password_hash TEXT NOT NULL,
  first_name VARCHAR(100),
  last_name VARCHAR(100),
  display_name VARCHAR(255),
  full_name VARCHAR(255),
- role_name VARCHAR(100) DEFAULT 'viewer',
  status VARCHAR(30) DEFAULT 'ACTIVE',
  metadata JSONB DEFAULT '{}'::jsonb,
  created_at TIMESTAMPTZ DEFAULT now(),
- updated_at TIMESTAMPTZ DEFAULT now(),
- UNIQUE(tenant_id,email));
+ updated_at TIMESTAMPTZ DEFAULT now());
 
 CREATE TABLE identity.roles(
  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
- tenant_id UUID NOT NULL REFERENCES identity.tenants(id),
- name VARCHAR(100) NOT NULL,
- description TEXT,
- UNIQUE(tenant_id,name));
+ name VARCHAR(100) UNIQUE NOT NULL,
+ description TEXT);
 
 CREATE TABLE identity.permissions(
  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -66,10 +61,14 @@ CREATE TABLE identity.role_permissions(
  permission_id UUID REFERENCES identity.permissions(id) ON DELETE CASCADE,
  PRIMARY KEY(role_id,permission_id));
 
-CREATE TABLE identity.user_roles(
- user_id UUID REFERENCES identity.users(id) ON DELETE CASCADE,
- role_id UUID REFERENCES identity.roles(id) ON DELETE CASCADE,
- PRIMARY KEY(user_id,role_id));
+CREATE TABLE identity.role_assignments(
+ id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+ user_id UUID NOT NULL REFERENCES identity.users(id) ON DELETE CASCADE,
+ role_id UUID NOT NULL REFERENCES identity.roles(id) ON DELETE CASCADE,
+ scope_type VARCHAR(50) NOT NULL,
+ scope_id UUID,
+ created_at TIMESTAMPTZ DEFAULT now(),
+ UNIQUE(user_id, role_id, scope_type, scope_id));
 
 CREATE TABLE workspace.workspaces(
  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

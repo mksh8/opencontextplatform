@@ -9,6 +9,8 @@ class OrganizationCreateRequest(BaseModel):
     description: Optional[str] = None
     website: Optional[str] = None
     industry: Optional[str] = None
+    owner_name: str
+    owner_email: str
 
 
 class Workspace(BaseModel):
@@ -27,6 +29,7 @@ class OrganizationResponse(BaseModel):
     website: Optional[str] = None
     industry: Optional[str] = None
     workspaces: List[Workspace]
+    tenant_count: int = 0
     member_count: int = 0
     status: str = "ACTIVE"
     created_at: str = ""
@@ -39,3 +42,13 @@ class MemberResponse(BaseModel):
     role: str
     status: str
     last_active: str
+
+class TenantResponse(BaseModel):
+    id: str
+    name: str
+    code: str
+    status: str
+    created_at: str
+    
+class StatusUpdateRequest(BaseModel):
+    status: str

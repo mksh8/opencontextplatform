@@ -1,138 +1,206 @@
-import React, { useState, useEffect } from 'react';
-import apiClient from '../api/client';
+import React, { useState } from 'react';
 import { useToast } from '../contexts/ToastContext';
 
-interface Provider {
-  id: string;
-  name: string;
-  url: string;
-  model: string;
-  status: string;
-  usage: string;
-}
+const TABS = ['Overview', 'Providers'];
+
+const KPIS = [
+  { label: 'Total Providers', value: 12, trend: 'Configured across platform' },
+  { label: 'Active Providers', value: 8, trend: 'Fully operational', color: '#10b981' },
+  { label: 'Inactive Providers', value: 3, trend: 'Disabled temporarily', color: '#f59e0b' },
+  { label: 'Error', value: 1, trend: 'Requires attention', color: '#ef4444' }
+];
+
+const INITIAL_PROVIDERS = [
+  { id: 1, name: 'OpenAI', type: 'LLM', models: 24, status: 'Active', region: 'Global', lastSync: 'May 12, 2024 10:30 AM' },
+  { id: 2, name: 'Anthropic', type: 'LLM', models: 15, status: 'Active', region: 'Global', lastSync: 'May 12, 2024 09:15 AM' },
+  { id: 3, name: 'Google Vertex AI', type: 'LLM', models: 32, status: 'Active', region: 'us-central1', lastSync: 'May 12, 2024 08:45 AM' },
+  { id: 4, name: 'Azure OpenAI', type: 'LLM', models: 18, status: 'Active', region: 'eastus', lastSync: 'May 12, 2024 07:20 AM' },
+  { id: 5, name: 'AWS Bedrock', type: 'LLM', models: 20, status: 'Inactive', region: 'us-east-1', lastSync: 'May 11, 2024 09:10 PM' },
+  { id: 6, name: 'Cohere', type: 'LLM', models: 10, status: 'Active', region: 'Global', lastSync: 'May 11, 2024 10:05 PM' },
+  { id: 7, name: 'Hugging Face', type: 'Embedding', models: 56, status: 'Active', region: 'Global', lastSync: 'May 11, 2024 09:40 PM' },
+  { id: 8, name: 'Ollama', type: 'LLM', models: 8, status: 'Error', region: 'On-Premise', lastSync: 'May 11, 2024 08:30 PM' }
+];
 
 export default function Providers() {
-  const [activeTab, setActiveTab] = useState('LLM Providers');
-  const [providers, setProviders] = useState<Provider[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('Overview');
+  const [providers, setProviders] = useState(INITIAL_PROVIDERS);
+  const [search, setSearch] = useState('');
   const [showModal, setShowModal] = useState(false);
-  const [formData, setFormData] = useState({ name: '', provider_type: 'OpenAI', api_key: '' });
-  const [submitting, setSubmitting] = useState(false);
-  const { addToast } = useToast();
-  const tabs = ['LLM Providers', 'Embedding Providers', 'Vector Providers', 'Graph Providers', 'Storage Providers'];
-  const orgId = "org_alpha_123";
+  const [formData, setFormData] = useState({ name: '', type: 'LLM', models: 1, region: 'Global' });
+  const { showToast } = useToast();
 
-  const fetchProviders = () => {
-    setLoading(true);
-    apiClient.get(`/providers/${orgId}`)
-      .then(response => {
-        setProviders(response.data);
-      })
-      .catch(error => console.error("Error fetching providers:", error))
-      .finally(() => setLoading(false));
-  };
-
-  useEffect(() => {
-    fetchProviders();
-  }, []);
-
-  const handleAddProvider = async (e: React.FormEvent) => {
+  const handleAddProvider = (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitting(true);
-    try {
-      await apiClient.post(`/providers/${orgId}`, formData);
-      addToast('Provider added successfully!', 'success');
-      setShowModal(false);
-      setFormData({ name: '', provider_type: 'OpenAI', api_key: '' });
-      fetchProviders();
-    } catch (error) {
-      console.error(error);
-      addToast('Failed to add provider', 'error');
-    } finally {
-      setSubmitting(false);
-    }
+    if (!formData.name) return;
+    
+    const newProv = {
+      id: Date.now(),
+      name: formData.name,
+      type: formData.type,
+      models: Number(formData.models),
+      status: 'Active',
+      region: formData.region,
+      lastSync: new Date().toLocaleString()
+    };
+    
+    setProviders([newProv, ...providers]);
+    setShowModal(false);
+    setFormData({ name: '', type: 'LLM', models: 1, region: 'Global' });
+    showToast('AI Provider added successfully!', 'success');
   };
+
+  const filteredProviders = providers.filter(p => {
+    if (!search) return true;
+    const s = search.toLowerCase();
+    return p.name.toLowerCase().includes(s) || p.type.toLowerCase().includes(s) || p.region.toLowerCase().includes(s);
+  });
 
   return (
     <>
-      <div className="page-header">
+      {/* Header */}
+      <div className="page-header" style={{ marginBottom: 20, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div className="page-title">
-          <h1>Providers</h1>
-          <p>Configure your AI and data providers.</p>
+          <h1 style={{ display: 'flex', alignItems: 'center', gap: 10 }}>Global AI Providers</h1>
+          <p style={{ marginTop: 4 }}>Manage AI providers available across the platform.</p>
         </div>
-        <button className="btn btn-primary" onClick={() => setShowModal(true)}>+ Add Provider</button>
+        <button className="btn btn-primary" onClick={() => setShowModal(true)} style={{ padding: '8px 16px', fontSize: 13 }}>+ Add Provider</button>
       </div>
 
-      <div style={{ borderBottom: '1px solid var(--border-color)', display: 'flex', gap: 32, marginBottom: 24 }}>
-        {tabs.map(tab => (
-          <div 
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            style={{ 
-              paddingBottom: 12, 
-              borderBottom: activeTab === tab ? '2px solid var(--accent-purple)' : '2px solid transparent', 
-              color: activeTab === tab ? '#fff' : 'var(--text-secondary)', 
-              fontSize: 13, 
-              fontWeight: 500, 
-              cursor: 'pointer' 
+      {/* Tabs */}
+      <div style={{ borderBottom: '1px solid var(--border-color)', display: 'flex', gap: 0, marginBottom: 20 }}>
+        {TABS.map(t => (
+          <div
+            key={t}
+            onClick={() => setActiveTab(t)}
+            style={{
+              padding: '10px 18px',
+              borderBottom: activeTab === t ? '2px solid #8b5cf6' : '2px solid transparent',
+              color: activeTab === t ? '#fff' : 'var(--text-secondary)',
+              fontSize: 13,
+              fontWeight: 500,
+              cursor: 'pointer',
+              transition: 'all 0.2s'
             }}
           >
-            {tab}
+            {t}
           </div>
         ))}
       </div>
 
-      {activeTab === 'LLM Providers' ? (
-        <div className="widget" style={{ padding: 0, overflow: 'hidden' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: 13 }}>
-          <thead>
-            <tr style={{ borderBottom: '1px solid var(--border-color)', color: 'var(--text-secondary)' }}>
-              <th style={{ padding: '16px 24px', fontWeight: 500 }}>Provider</th>
-              <th style={{ padding: '16px 24px', fontWeight: 500 }}>Model</th>
-              <th style={{ padding: '16px 24px', fontWeight: 500 }}>Status</th>
-              <th style={{ padding: '16px 24px', fontWeight: 500 }}>Usage / Experience</th>
-              <th style={{ padding: '16px 24px', fontWeight: 500 }}></th>
-            </tr>
-          </thead>
-          <tbody>
-            {loading ? (
-              <tr>
-                <td colSpan={5} style={{ padding: '24px', textAlign: 'center', color: 'var(--text-secondary)' }}>
-                  Loading providers...
-                </td>
-              </tr>
-            ) : providers.length === 0 ? (
-              <tr>
-                <td colSpan={5} style={{ padding: '24px', textAlign: 'center', color: 'var(--text-secondary)' }}>
-                  No providers found.
-                </td>
-              </tr>
-            ) : (
-              providers.map(provider => (
-                <tr key={provider.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
-                  <td style={{ padding: '16px 24px' }}>
-                    <div style={{ fontWeight: 500, color: '#fff' }}>{provider.name}</div>
-                    <div style={{ fontSize: 11, color: 'var(--text-secondary)' }}>{provider.url}</div>
-                  </td>
-                  <td style={{ padding: '16px 24px' }}><span className="tag" style={{ border: '1px solid var(--border-color)' }}>{provider.model}</span></td>
-                  <td style={{ padding: '16px 24px' }}>
-                    <div className="status-indicator" style={{ color: provider.status === 'Active' ? '#10b981' : 'var(--text-secondary)' }}>
-                      <div className="dot" style={{ background: provider.status === 'Active' ? '#10b981' : 'var(--text-secondary)' }}></div> 
-                      {provider.status}
-                    </div>
-                  </td>
-                  <td style={{ padding: '16px 24px', color: 'var(--text-secondary)' }}>{provider.usage}</td>
-                  <td style={{ padding: '16px 24px', cursor: 'pointer' }}>⋮</td>
+      {/* KPIs (Shown on Overview tab) */}
+      {activeTab === 'Overview' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16 }}>
+            {KPIS.map((kpi, idx) => (
+              <div key={idx} className="widget" style={{ padding: '16px 20px', display: 'flex', alignItems: 'center', gap: 16 }}>
+                <div style={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: 8,
+                  background: 'rgba(255,255,255,0.05)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: 18,
+                  color: kpi.color || '#fff'
+                }}>
+                  {kpi.label.includes('Total') ? '⚡' : kpi.label.includes('Active') ? '✓' : kpi.label.includes('Inactive') ? '⏸' : '⚠️'}
+                </div>
+                <div>
+                  <div style={{ color: 'var(--text-secondary)', fontSize: 11, marginBottom: 4 }}>{kpi.label}</div>
+                  <div style={{ fontSize: 18, fontWeight: 600, color: '#fff', marginBottom: 2 }}>{kpi.value}</div>
+                  <div style={{ fontSize: 10, color: 'var(--text-secondary)' }}>
+                    {kpi.trend}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Table */}
+          <div className="widget" style={{ padding: 0, overflow: 'hidden' }}>
+            <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border-color)', display: 'flex', gap: 12, alignItems: 'center' }}>
+              <div style={{ flex: 1, position: 'relative' }}>
+                <span style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)', fontSize: 13 }}>🔍</span>
+                <input
+                  value={search}
+                  onChange={e => setSearch(e.target.value)}
+                  placeholder="Search providers..."
+                  style={{
+                    width: '100%',
+                    padding: '7px 12px 7px 34px',
+                    background: 'rgba(0,0,0,0.2)',
+                    border: '1px solid var(--border-color)',
+                    borderRadius: 6,
+                    color: '#fff',
+                    fontSize: 13,
+                    boxSizing: 'border-box'
+                  }}
+                />
+              </div>
+              <select style={{ fontSize: 13, background: 'rgba(0,0,0,0.2)', border: '1px solid var(--border-color)', borderRadius: 6, color: '#fff', padding: '0 12px', height: 32 }}><option>All Providers</option></select>
+            </div>
+
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, textAlign: 'left' }}>
+              <thead>
+                <tr style={{ borderBottom: '1px solid var(--border-color)', color: 'var(--text-secondary)' }}>
+                  {['Provider', 'Type', 'Models', 'Status', 'Region', 'Last Sync', 'Actions'].map(h => (
+                    <th key={h} style={{ padding: '12px 16px', fontWeight: 500, fontSize: 12 }}>{h}</th>
+                  ))}
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
-      ) : (
-        <div className="widget" style={{ padding: 48, textAlign: 'center' }}>
-          <p style={{ color: 'var(--text-secondary)' }}>The {activeTab} section is currently under development.</p>
-          <button className="btn btn-primary" style={{ marginTop: 16 }} onClick={() => addToast(`Subscribed to ${activeTab} updates!`, 'success')}>Notify me when available</button>
+              </thead>
+              <tbody>
+                {filteredProviders.map(p => (
+                  <tr key={p.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
+                    <td style={{ padding: '14px 16px', color: '#fff', fontWeight: 500 }}>{p.name}</td>
+                    <td style={{ padding: '14px 16px', color: 'var(--text-secondary)' }}>{p.type}</td>
+                    <td style={{ padding: '14px 16px', color: '#fff' }}>{p.models}</td>
+                    <td style={{ padding: '14px 16px' }}>
+                      <span style={{
+                        fontSize: 11,
+                        padding: '3px 8px',
+                        borderRadius: 4,
+                        background: p.status === 'Active' ? 'rgba(16,185,129,0.12)' : p.status === 'Inactive' ? 'rgba(245,158,11,0.12)' : 'rgba(239,68,68,0.12)',
+                        color: p.status === 'Active' ? '#10b981' : p.status === 'Inactive' ? '#f59e0b' : '#ef4444',
+                        fontWeight: 500
+                      }}>
+                        {p.status}
+                      </span>
+                    </td>
+                    <td style={{ padding: '14px 16px', color: 'var(--text-secondary)' }}>{p.region}</td>
+                    <td style={{ padding: '14px 16px', color: 'var(--text-secondary)' }}>{p.lastSync}</td>
+                    <td style={{ padding: '14px 16px', color: 'var(--text-secondary)', cursor: 'pointer' }}>✏️ 🗑️ 🔄</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'Providers' && (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
+          {providers.map(p => (
+            <div key={p.id} className="widget" style={{ padding: 20 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
+                <span style={{ fontSize: 24 }}>⚡</span>
+                <span style={{
+                  fontSize: 10,
+                  padding: '2px 6px',
+                  borderRadius: 4,
+                  background: p.status === 'Active' ? 'rgba(16,185,129,0.12)' : 'rgba(239,68,68,0.12)',
+                  color: p.status === 'Active' ? '#10b981' : '#ef4444',
+                  fontWeight: 600
+                }}>{p.status}</span>
+              </div>
+              <h3 style={{ fontSize: 16, fontWeight: 600, color: '#fff', margin: '0 0 4px 0' }}>{p.name}</h3>
+              <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 14 }}>Type: {p.type} | Region: {p.region}</div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: 12 }}>
+                <span style={{ color: 'var(--text-secondary)' }}>Models: <strong>{p.models}</strong></span>
+                <span style={{ color: 'var(--text-secondary)' }}>Sync: {p.lastSync.split(',')[0]}</span>
+              </div>
+            </div>
+          ))}
         </div>
       )}
 
@@ -143,48 +211,53 @@ export default function Providers() {
             <h3 style={{ marginTop: 0, marginBottom: 24, fontSize: 18, color: '#fff' }}>Add AI Provider</h3>
             <form onSubmit={handleAddProvider}>
               <div style={{ marginBottom: 16 }}>
-                <label style={{ display: 'block', marginBottom: 8, fontSize: 13, color: 'var(--text-secondary)' }}>Provider Type</label>
-                <select 
-                  style={{ width: '100%', padding: '10px 12px', background: 'var(--bg-input)', border: '1px solid var(--border-color)', borderRadius: 6, color: '#fff', fontSize: 14 }}
-                  value={formData.provider_type}
-                  onChange={e => setFormData({...formData, provider_type: e.target.value})}
-                  required
-                >
-                  <option value="OpenAI">OpenAI</option>
-                  <option value="Anthropic">Anthropic</option>
-                  <option value="Ollama">Ollama (Local)</option>
-                  <option value="Google">Google Gemini</option>
-                </select>
-              </div>
-              <div style={{ marginBottom: 16 }}>
-                <label style={{ display: 'block', marginBottom: 8, fontSize: 13, color: 'var(--text-secondary)' }}>Display Name</label>
+                <label style={{ display: 'block', marginBottom: 8, fontSize: 13, color: 'var(--text-secondary)' }}>Provider Name</label>
                 <input 
                   type="text" 
-                  placeholder="e.g. My OpenAI Account"
-                  style={{ width: '100%', padding: '10px 12px', background: 'var(--bg-input)', border: '1px solid var(--border-color)', borderRadius: 6, color: '#fff', fontSize: 14 }}
+                  placeholder="e.g. Google Vertex AI"
+                  style={{ width: '100%', padding: '10px 12px', background: 'rgba(0,0,0,0.2)', border: '1px solid var(--border-color)', borderRadius: 6, color: '#fff', fontSize: 14 }}
                   value={formData.name}
                   onChange={e => setFormData({...formData, name: e.target.value})}
                   required
                 />
               </div>
-              <div style={{ marginBottom: 24 }}>
-                <label style={{ display: 'block', marginBottom: 8, fontSize: 13, color: 'var(--text-secondary)' }}>API Key</label>
+              <div style={{ marginBottom: 16 }}>
+                <label style={{ display: 'block', marginBottom: 8, fontSize: 13, color: 'var(--text-secondary)' }}>Type</label>
+                <select 
+                  style={{ width: '100%', padding: '10px 12px', background: 'rgba(0,0,0,0.2)', border: '1px solid var(--border-color)', borderRadius: 6, color: '#fff', fontSize: 14 }}
+                  value={formData.type}
+                  onChange={e => setFormData({...formData, type: e.target.value})}
+                >
+                  <option>LLM</option>
+                  <option>Embedding</option>
+                  <option>Vector</option>
+                  <option>Graph</option>
+                </select>
+              </div>
+              <div style={{ marginBottom: 16 }}>
+                <label style={{ display: 'block', marginBottom: 8, fontSize: 13, color: 'var(--text-secondary)' }}>Models Count</label>
                 <input 
-                  type="password" 
-                  placeholder="sk-..."
-                  style={{ width: '100%', padding: '10px 12px', background: 'var(--bg-input)', border: '1px solid var(--border-color)', borderRadius: 6, color: '#fff', fontSize: 14 }}
-                  value={formData.api_key}
-                  onChange={e => setFormData({...formData, api_key: e.target.value})}
+                  type="number" 
+                  style={{ width: '100%', padding: '10px 12px', background: 'rgba(0,0,0,0.2)', border: '1px solid var(--border-color)', borderRadius: 6, color: '#fff', fontSize: 14 }}
+                  value={formData.models}
+                  onChange={e => setFormData({...formData, models: Number(e.target.value)})}
                   required
                 />
-                <p style={{ fontSize: 11, color: 'var(--text-secondary)', marginTop: 8 }}>Your key is encrypted before being stored.</p>
               </div>
-              
+              <div style={{ marginBottom: 24 }}>
+                <label style={{ display: 'block', marginBottom: 8, fontSize: 13, color: 'var(--text-secondary)' }}>Region</label>
+                <input 
+                  type="text" 
+                  placeholder="e.g. us-central1"
+                  style={{ width: '100%', padding: '10px 12px', background: 'rgba(0,0,0,0.2)', border: '1px solid var(--border-color)', borderRadius: 6, color: '#fff', fontSize: 14 }}
+                  value={formData.region}
+                  onChange={e => setFormData({...formData, region: e.target.value})}
+                  required
+                />
+              </div>
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12 }}>
-                <button type="button" className="btn" style={{ background: 'transparent', border: '1px solid var(--border-color)' }} onClick={() => setShowModal(false)}>Cancel</button>
-                <button type="submit" className="btn btn-primary" disabled={submitting}>
-                  {submitting ? 'Saving...' : 'Save Provider'}
-                </button>
+                <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>Cancel</button>
+                <button type="submit" className="btn btn-primary">Save Provider</button>
               </div>
             </form>
           </div>

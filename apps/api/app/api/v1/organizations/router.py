@@ -6,6 +6,8 @@ from apps.api.app.modules.organizations.schemas import (
     OrganizationResponse,
     OrganizationCreateRequest,
     MemberResponse,
+    TenantResponse,
+    StatusUpdateRequest
 )
 
 logger = logging.getLogger(__name__)
@@ -40,3 +42,22 @@ def get_members(org_id: str):
     except Exception:
         logger.exception(f"Failed to retrieve members for {org_id}")
         raise HTTPException(status_code=500, detail="Internal Server Error")
+
+@router.get("/{org_id}/tenants", response_model=List[TenantResponse])
+def get_tenants(org_id: str):
+    """Get all tenants of a specific organization."""
+    try:
+        return organization_service.get_organization_tenants(org_id)
+    except Exception:
+        logger.exception(f"Failed to retrieve tenants for {org_id}")
+        raise HTTPException(status_code=500, detail="Internal Server Error")
+
+@router.put("/{org_id}/status", response_model=OrganizationResponse)
+def update_status(org_id: str, request: StatusUpdateRequest):
+    """Update organization status."""
+    try:
+        return organization_service.update_organization_status(org_id, request.status)
+    except Exception:
+        logger.exception(f"Failed to update status for {org_id}")
+        raise HTTPException(status_code=500, detail="Internal Server Error")
+

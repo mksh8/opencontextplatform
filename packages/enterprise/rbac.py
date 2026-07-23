@@ -8,7 +8,7 @@ class RBACEngine:
 
     def get_permissions(self, roles: List[str], tenant_id: str, db: Session) -> List[str]:
         perms = set()
-        db_roles = db.query(Role).filter(Role.tenant_id == tenant_id, Role.name.in_(roles)).all()
+        db_roles = db.query(Role).filter(Role.name.in_(roles)).all()
         for role in db_roles:
             if role.permissions:
                 perms.update(role.permissions)

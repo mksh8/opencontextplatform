@@ -4,110 +4,161 @@ from sqlalchemy import text
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session
 from sqlalchemy.inspection import inspect
-from runtime.models.identity import Organization, Tenant, User, Role, RolePermission, Permission
+from runtime.models.identity import Organization, Tenant, User, Role, RoleAssignment, Permission
 
-def init_database_schemas(engine: Engine):
+def init_database_schemas(engine):
     """
-    Runs the initial enterprise SQL migration scripts if the database
-    has not been initialized yet.
+    Initializes the database schema using Alembic.
     """
-    inspector = inspect(engine)
-    # Check if the primary table from phase 1 exists
-    if inspector.has_table("organizations", schema="identity"):
-        print("Database schemas already initialized. Skipping migration script execution.")
-        return
-
-    print("Initializing database with enterprise schemas...")
+    import os
+    import sys
+    from alembic.config import Config
+    from alembic import command
     
-    # Path to the sql directory
-    base_dir = os.path.dirname(os.path.dirname(__file__))
-    sql_dir = os.path.join(base_dir, "sql")
+    print("Initializing database using Alembic migrations...")
     
-    phases = [
-        "opencontextplatform_phase1_schema.sql",
-        "opencontextplatform_phase2_schema.sql",
-        "opencontextplatform_phase3_schema.sql",
-        "opencontextplatform_phase4_schema.sql",
-        "opencontextplatform_phase5_schema.sql",
-        "opencontextplatform_phase6_schema.sql",
-        "opencontextplatform_phase7_schema.sql",
-        "opencontextplatform_phase8_schema.sql",
-        "opencontextplatform_phase9_schema.sql",
-    ]
+    # Locate alembic.ini
+    alembic_cfg = Config("alembic.ini")
     
-    with engine.begin() as conn:
-        for phase_file in phases:
-            file_path = os.path.join(sql_dir, phase_file)
-            if os.path.exists(file_path):
-                print(f"Executing {phase_file}...")
-                with open(file_path, "r") as f:
-                    sql_content = f.read()
-                    conn.execute(text(sql_content))
-            else:
-                print(f"Warning: {file_path} not found.")
-                
-    print("Enterprise schemas initialized successfully.")
+    try:
+        # Programmatically run `alembic upgrade head`
+        command.upgrade(alembic_cfg, "head")
+        print("Database migrations applied successfully.")
+    except Exception as e:
+        print(f"Error applying migrations: {e}")
+        import traceback
+        traceback.print_exc()
+        raise e
 
 def seed_super_tenant(engine: Engine):
     """
-    Seeds a super organization, super tenant, and super admin user on startup
-    if the database is entirely empty.
+    Seeds the global platform roles and a bootstrap Platform Owner if 
+    environment variables are provided during startup.
     """
     with Session(engine) as session:
-        # If any organization exists, skip
-        if session.query(Organization).first():
+        # Seed Full Role Hierarchy
+        roles_to_seed = [
+            # Platform Level
+            ("Platform Owner",              "Complete platform ownership"),
+            ("Platform Admin",              "Manage organizations, platform settings, infrastructure"),
+            ("Platform Operator",           "Daily operations, monitoring, upgrades"),
+            ("Platform Support",            "Customer support with audited impersonation/support mode"),
+            ("Platform Security Admin",     "Global security policies, SSO, audit, secrets"),
+            ("Platform Billing Admin",      "Billing, subscriptions, invoices"),
+            ("Platform Auditor",            "Read-only access to all audit logs"),
+            ("Platform Marketplace Admin",  "Manage connectors, plugins, templates, SDKs"),
+            # Organization Level
+            ("Organization Owner",          "Complete ownership of an organization"),
+            ("Organization Admin",          "Manage organization settings and users"),
+            ("Organization Security Admin", "Organization security policies, SSO, SCIM"),
+            ("Organization Billing Manager","Billing, invoices, subscription"),
+            ("Organization Compliance Officer", "Audit and governance"),
+            ("Organization Auditor",        "Read-only organization access"),
+            # Tenant Level
+            ("Tenant Owner",                "Owns one tenant"),
+            ("Tenant Admin",                "Manages tenant operations"),
+            ("Tenant Operator",             "Resource management and monitoring"),
+            ("Tenant Security Admin",       "Tenant-level security and secrets"),
+            ("Tenant Billing Viewer",       "View tenant resource usage"),
+            # Workspace Level
+            ("Workspace Owner",             "Full workspace ownership"),
+            ("Workspace Admin",             "Day-to-day administration"),
+            ("Project Admin",               "Manage projects within the workspace"),
+            ("Team Lead",                   "Manage team members and approvals"),
+            ("Viewer",                      "Read-only access"),
+            # Engineering Roles
+            ("AI Engineer",                 "Build AI agents, prompts, evaluations"),
+            ("Data Engineer",               "Data ingestion, pipelines, catalogs"),
+            ("ML Engineer",                 "Model lifecycle and training"),
+            ("Prompt Engineer",             "Prompt engineering and testing"),
+            ("Knowledge Engineer",          "Ontology and knowledge graph management"),
+            ("Agent Developer",             "Build and deploy agents"),
+            ("Workflow Developer",          "Design workflows and automations"),
+            ("Integration Engineer",        "Manage connectors and APIs"),
+            ("QA Engineer",                 "Test agents, workflows, and datasets"),
+            # Business Roles
+            ("Business Analyst",            "Analyze data and reports"),
+            ("Product Manager",             "Manage product artifacts"),
+            ("Data Steward",                "Metadata ownership and governance"),
+            ("Domain Expert",               "Approve business glossary and ontology"),
+            # Service / Non-human Roles
+            ("Service Account",             "Machine-to-machine authentication"),
+            ("API Client",                  "API integrations"),
+            ("Automation Bot",              "Scheduled jobs and workflows"),
+            ("MCP Server",                  "MCP server identity"),
+            ("Agent Runtime",               "AI agent execution identity"),
+        ]
+
+        roles_dict = {}
+        for role_name, role_desc in roles_to_seed:
+            role = session.query(Role).filter_by(name=role_name).first()
+            if not role:
+                role = Role(name=role_name, description=role_desc)
+                session.add(role)
+            roles_dict[role_name] = role
+
+        session.commit()
+
+        
+        # Check if any user exists
+        if session.query(User).first():
             return
             
-        print("\n" + "="*50)
-        print("Initial Platform Setup Detected!")
-        print("="*50)
-        
+        import os
         from apps.api.app.core.config import settings
         import bcrypt
         
-        org_name = settings.SUPER_ORG_NAME
-        tenant_name = settings.SUPER_TENANT_NAME
-        admin_email = settings.SUPER_ADMIN_EMAIL
-        admin_password = settings.SUPER_ADMIN_PASSWORD
+        admin_email = os.environ.get("BOOTSTRAP_ADMIN_EMAIL", settings.SUPER_ADMIN_EMAIL)
+        admin_password = os.environ.get("BOOTSTRAP_ADMIN_PASSWORD", settings.SUPER_ADMIN_PASSWORD)
+        admin_name = os.environ.get("BOOTSTRAP_ADMIN_NAME", "System Administrator")
         
-        if not org_name:
-            org_name = input("Enter super organization name (e.g. OpenContext): ").strip()
-        if not tenant_name:
-            tenant_name = input("Enter super tenant name (e.g. Default Tenant): ").strip()
-        if not admin_email:
-            admin_email = input("Enter super admin email (e.g. admin@opencontext.com): ").strip()
-        if not admin_password:
-            import getpass
-            admin_password = getpass.getpass("Enter super admin password: ").strip()
+        import sys
+        import getpass
+        
+        if not (admin_email and admin_password):
+            if sys.stdin.isatty():
+                print("\n" + "="*50)
+                print("OpenContextPlatform Setup Wizard")
+                print("No bootstrap environment variables detected.")
+                print("Please enter details to create the first Platform Owner.")
+                print("="*50)
+                admin_name = input("Platform Owner Name [System Administrator]: ") or "System Administrator"
+                admin_email = input("Email: ")
+                admin_password = getpass.getpass("Password: ")
+                
+                if not admin_email or not admin_password:
+                    print("Email and password are required. Skipping bootstrap.\n")
+                    return
+            else:
+                print("No bootstrap environment variables detected. Skipping bootstrap.\n")
+                return
+                
+        if admin_email and admin_password:
+            print("\n" + "="*50)
+            print(f"Bootstrapping Platform Owner: {admin_email}")
+            print("="*50)
             
-        org_id = uuid.uuid4()
-        tenant_id = uuid.UUID("00000000-0000-0000-0000-000000000001") # Use the valid hardcoded UUID to match dependencies mock for now
-        
-        org = Organization(id=org_id, code="super_org", name=org_name)
-        tenant = Tenant(id=tenant_id, organization_id=org_id, code="super_tenant", name=tenant_name)
-        
-        session.add(org)
-        session.add(tenant)
-        session.commit() # The Postgres trigger will generate roles (admin, member, viewer) for this tenant!
-        
-        # Now fetch the newly generated admin role
-        admin_role = session.query(Role).filter(Role.tenant_id == tenant_id, Role.name == 'admin').first()
-        
-        # Create Super Admin User
-        hashed_password = bcrypt.hashpw(admin_password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
-        super_admin = User(
-            id=uuid.uuid4(),
-            tenant_id=tenant_id,
-            email=admin_email,
-            password_hash=hashed_password,
-            full_name="Super Administrator",
-            role_name="admin" # Backwards compatibility
-        )
-        session.add(super_admin)
-        
-        # If we need global system permissions, we could map them here. 
-        # By default, the admin role gets all permissions thanks to our trigger.
-        
-        session.commit()
-        print("\nSuccess! Super Organization and Super Admin seeded.")
-        print("="*50 + "\n")
+            hashed_password = bcrypt.hashpw(admin_password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
+            super_admin = User(
+                id=uuid.uuid4(),
+                email=admin_email,
+                password_hash=hashed_password,
+                full_name=admin_name,
+                status="ACTIVE"
+            )
+            session.add(super_admin)
+            session.flush() # get ID
+            
+            # Assign Platform Owner Role
+            platform_owner_role = session.query(Role).filter_by(name="Platform Owner").first()
+            if platform_owner_role:
+                assignment = RoleAssignment(
+                    user_id=super_admin.id,
+                    role_id=platform_owner_role.id,
+                    scope_type="PLATFORM"
+                )
+                session.add(assignment)
+                
+            session.commit()
+            print("Success! Platform Owner bootstrapped via environment variables.")
+            print("="*50 + "\n")
